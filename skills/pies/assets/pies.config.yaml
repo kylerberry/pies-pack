@@ -1,0 +1,39 @@
+version: 1
+
+# Run every applicable check; no entry covers another.
+checks:
+  test: npm test
+  typecheck: npm run typecheck
+  lint: npm run lint
+  format: npm run format:check
+
+# Replace examples with the repository's real surfaces.
+# `drive` names the interaction mechanism; feature `command` is executable.
+surfaces:
+  api:
+    skill: .pi/skills/verify-example/SKILL.md
+    start: npm run dev:api
+    ready: curl -sf http://localhost:3000/health
+    doctor: .pi/skills/verify-example/scripts/doctor-api
+    drive: http
+    cleanup: .pi/skills/verify-example/scripts/cleanup-api
+    isolation: per-worktree
+    evidence: status, response body, and relevant logs
+  web:
+    skill: .pi/skills/verify-example/SKILL.md
+    start: npm run dev
+    ready: curl -sf http://localhost:5173
+    doctor: .pi/skills/verify-example/scripts/doctor-web
+    drive: playwright
+    cleanup: .pi/skills/verify-example/scripts/cleanup-web
+    isolation: per-worktree
+    evidence: DOM assertion and screenshot
+
+# Each command drives one capability through its named surface.
+features:
+  - id: example-capability
+    paths: [src/example/**]
+    surface: web
+    guide: .pi/skills/verify-example/features/example-capability.md
+    proves: A user can complete the example journey
+    command: npx playwright test verify/example.spec.ts

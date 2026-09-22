@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""Print the ready frontier of a PIES DAG from first-parent Git history."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+NODE_FIELDS = {"id", "intent", "change_spec", "acceptance_criteria", "depends_on"}
+NODE_TRAILER = re.compile(r"^Node:\s*(\S+)\s*$")
+REVERT_LINE = re.compile(r"^This reverts commit ([0-9a-fA-F]+)(?:[,.].*)?$", re.MULTILINE)
+
+
+def fail(message: str) -> "None":
+    raise SystemExit(f"pies-dag-next: {message}")
+
+
+def load_dag(path: Path) -> dict:
+    try:
+        dag = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        fail(f"cannot read {path}: {exc}")
+    if not isinstance(dag, dict) or not isinstance(dag.get("meta"), dict) or not isinstance(dag.get("nodes"), list):
+        fail("dag must contain meta and nodes")
+
+    ids: set[str] = set()
+    for index, node in enumerate(dag["nodes"]):
+        if not isinstance(node, dict) or set(node) != NODE_FIELDS:
+            fail(f"node {index} must have exactly {sorted(NODE_FIELDS)}")
+        node_id = node.get("id")
+        if not isinstance(node_id, str) or not node_id or node_id in ids:
+            fail(f"node {index} has an empty or duplicate id")
+        if not isinstance(node.get("acceptance_criteria"), list) or not node["acceptance_criteria"]:
+            fail(f"node {node_id} needs acceptance criteria")
+        if not isinstance(node.get("depends_on"), list):
+            fail(f"node {node_id} depends_on must be an array")
+        ids.add(node_id)
+
+    dependencies = {node["id"]: set(node["depends_on"]) for node in dag["nodes"]}
+    for node_id, required in dependencies.items():
+        unknown = required - ids
+        if unknown:
+            fail(f"node {node_id} has unknown dependencies: {sorted(unknown)}")
+
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(node_id: str) -> None:
+        if node_id in visiting:
+            fail(f"dependency cycle includes {node_id}")
+        if node_id in visited:
+            return
+        visiting.add(node_id)
+        for dependency in dependencies[node_id]:
+            visit(dependency)
+        visiting.remove(node_id)
+        visited.add(node_id)
+
+    for node_id in ids:
+        visit(node_id)
+    return dag
+
+
+def footer_node(message: str) -> str | None:
+    paragraphs = re.split(r"\n\s*\n", message.rstrip())
+    if not paragraphs:
+        return None
+    matches = [NODE_TRAILER.match(line.strip()) for line in paragraphs[-1].splitlines()]
+    values = [match.group(1) for match in matches if match]
+    return values[-1] if values else None
+
+
+def git_done(repo: Path, branch: str, known_ids: set[str]) -> set[str]:
+    command = [
+        "git", "-C", str(repo), "log", "--first-parent", "--reverse",
+        "--format=%H%x00%B%x00%x1e", branch,
+    ]
+    result = subprocess.run(command, text=True, capture_output=True)
+    if result.returncode:
+        fail(result.stderr.strip() or "git log failed")
+
+    done: set[str] = set()
+    effects_by_commit: dict[str, list[tuple[str, str]]] = {}
+    for record in result.stdout.split("\x1e"):
+        record = record.strip("\n")
+        if not record or "\x00" not in record:
+            continue
+        commit, message, *_ = record.split("\x00")
+        effects: list[tuple[str, str]] = []
+
+        reverted = REVERT_LINE.search(message)
+        if reverted:
+            target = reverted.group(1).lower()
+            candidates = [sha for sha in effects_by_commit if sha.startswith(target)]
+            if len(candidates) == 1:
+                effects = [("remove" if action == "add" else "add", node_id)
+                           for action, node_id in effects_by_commit[candidates[0]]]
+        else:
+            node_id = footer_node(message)
+            if node_id in known_ids:
+                effects = [("add", node_id)]
+
+        for action, node_id in effects:
+            done.add(node_id) if action == "add" else done.discard(node_id)
+        effects_by_commit[commit.lower()] = effects
+    return done
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dag", default="dag.json", type=Path)
+    parser.add_argument("--repo", type=Path)
+    parser.add_argument("--branch")
+    parser.add_argument("--json", action="store_true", dest="as_json")
+    args = parser.parse_args()
+
+    dag = load_dag(args.dag.resolve())
+    meta = dag["meta"]
+    repo = (args.repo or Path(meta.get("repo", ""))).expanduser().resolve()
+    branch = args.branch or meta.get("branch")
+    if not branch:
+        fail("meta.branch or --branch is required")
+    if not (repo / ".git").exists():
+        probe = subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-dir"], capture_output=True)
+        if probe.returncode:
+            fail(f"not a Git repository: {repo}")
+
+    ids = {node["id"] for node in dag["nodes"]}
+    done = git_done(repo, branch, ids)
+    ready = [node["id"] for node in dag["nodes"]
+             if node["id"] not in done and set(node["depends_on"]) <= done]
+
+    if args.as_json:
+        ordered_done = [node["id"] for node in dag["nodes"] if node["id"] in done]
+        print(json.dumps({"done": ordered_done, "ready": ready}, separators=(",", ":")))
+    else:
+        print("\n".join(ready))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

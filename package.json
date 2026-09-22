@@ -1,0 +1,13 @@
+{
+  "name": "pies-skills",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PIES planning, implementation, evaluation, and DAG execution skills",
+  "type": "module",
+  "bin": {
+    "pies-dag-next": "./scripts/dag-next"
+  },
+  "scripts": {
+    "test": "python3 -m unittest discover -s tests -v"
+  }
+}
