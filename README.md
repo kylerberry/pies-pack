@@ -13,7 +13,7 @@ ADR-driven Pi skills for single-node delivery and DAG execution.
 
 ## Use
 
-Open this repository as a trusted Pi project, or install it as a Pi package. The package exports `skills/` and the `pies-dag-next` command. Global Pi settings bind `worker` to `gpt-5.6-luna` and `scout` to `glm-5.3-flash`; custom agent files bind their own models. `pies-lead` uses `gpt-5.6-terra` with medium thinking.
+Open this repository as a trusted Pi project, or install it as a Pi package. The package exports `skills/` and the `pies-dag-next` command. Global Pi settings bind `worker` to `gpt-5.6-luna` and `scout` to `glm-5.3-flash`; custom agent files bind their own models. For ordinary `/pies`, the initiating Pi session is the lead and directly launches only scout, worker, simplifier, and escalation evaluator phases. `pies-lead` remains available for the separate DAG-node orchestration path. Session-hosting choices are operational concerns outside the skills.
 
 ```text
 /skill:pies <task>

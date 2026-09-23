@@ -5,7 +5,7 @@ description: Execute one code-change node through grounding, planning, delegated
 
 # PIES
 
-You are the **lead**. Own intent, plan, review, and the pass/fail decision. Never write production code. Delegate production edits to `worker`; use only the agents named below. Children receive file paths, not copied context, and return bounded file-backed results. Replace a child when direction changes; do not steer or resume it. Children may not spawn agents.
+You are the **lead**. In an ordinary `/pies` run, the initiating Pi session is the lead: do not launch `pies-lead` as a child. Own intent, plan, review, and the pass/fail decision. Never write production code. Delegate production edits to `worker`; direct children may only be `scout`, `worker`, `pies-simplifier`, and escalation-triggered `pies-evaluator`. Children receive file paths, not copied context, and return bounded file-backed results. Replace a child when direction changes; do not steer or resume it. Children may not spawn agents.
 
 ## Input
 
@@ -19,11 +19,36 @@ Normalize to exactly `id`, `intent`, `change_spec`, `acceptance_criteria`, plus 
 
 Do all work in the dedicated worktree. In DAG mode, never merge. In standalone mode, never publish before the Publication gate.
 
+## Artifact location
+
+Do not write PIES artifacts under the repository or worktree. At the start of every run, derive one stable, user-level artifact root shared by every worktree of the repository:
+
+```text
+$HOME/.pi/agent/pies/<repo-basename>-<first-12-hex-of-sha256(remote.origin.url)>
+```
+
+When no `remote.origin.url` exists, use the repository's Git common-directory path as the hash input. Call the resulting absolute path `PIES_ARTIFACT_ROOT`. Create `runs/` and `learnings/` beneath this root. The hash prevents collisions between repositories with the same basename without placing a remote URL, credentials, or other identity data in a path. Use absolute paths beneath this root for the normalized node, plan, child reports, verification evidence, and learning records. Never rely on a worktree-local `.pies/` directory, even when it is ignored.
+
+## Phase control
+
+The primary lead owns phase lifecycle. Do not put Scout → Worker → Simplifier → Evaluator inside one nested `pies-lead` run or one aggregate child timeout.
+
+Before starting each child phase, record its deadline, inactivity threshold, and checkpoint path in the run plan. Use these defaults unless the plan records evidence for another value:
+
+| Phase | Deadline | Inactivity threshold | Checkpoint rule |
+| --- | --- | --- | --- |
+| Scout | 15 minutes | 5 minutes | Write the grounding report before stopping. |
+| Worker | 45 minutes | 10 minutes | Five minutes before deadline, write a diff/checks/report checkpoint. |
+| Simplifier | 15 minutes | 5 minutes | Write a deletion/no-change report before stopping. |
+| Escalation evaluator | 30 minutes | 10 minutes | Write its independent evidence and verdict before stopping. |
+
+Check child activity at the inactivity threshold. Surface an inactive phase to the caller promptly; do not silently wait for an aggregate run to expire. At a phase deadline, retain the worktree and checkpoint evidence, record the exact blocker, and replace the child only through a fresh direct launch when the retained evidence makes a retry safe. A long-running active phase may continue only when the lead records its new deadline and reason. Never treat a timeout receipt as proof or acceptance.
+
 ## Procedure
 
 ### 1. Ground
 
-Launch `scout` to inspect affected code, project instructions, `pies.config.yaml`, its referenced verification skills and feature guides, actual package scripts, and `.pies/learnings/*.md`. The scout returns a bounded file; the lead reads and retains that grounding through planning, review, and evaluation. The worker receives the plan and file pointers, not the scout transcript or lead context. Standalone runs also use available session/project recall. A trivial one-function task that easily passes reviewer-budget may skip grounding only with a recorded reason.
+Launch `scout` to inspect affected code, project instructions, `pies.config.yaml`, its referenced verification skills and feature guides, actual package scripts, and `<PIES_ARTIFACT_ROOT>/learnings/*.md`. The scout returns a bounded file under `<PIES_ARTIFACT_ROOT>/runs/<id>/`; the lead reads and retains that grounding through planning, review, and evaluation. The worker receives the plan and file pointers, not the scout transcript or lead context. Standalone runs also use available session/project recall. A trivial one-function task that easily passes reviewer-budget may skip grounding only with a recorded reason.
 
 During planning:
 
@@ -31,7 +56,7 @@ During planning:
 - For changes crossing a function boundary, write a types-and-signatures sketch.
 - Stop for human approval when work spans two or more domains, has security implications, or changes a public API/surface. `--afk` does not bypass this gate.
 
-Write the normalized node and plan to the run's managed artifact directory and pass their paths. The plan references, not restates, DAG criteria.
+Write the normalized node and plan to `<PIES_ARTIFACT_ROOT>/runs/<id>/` and pass their absolute paths. The plan references, not restates, DAG criteria.
 
 ### 2. Protect the bar
 
@@ -66,7 +91,7 @@ A pass requires the lead's acceptance and, when triggered, second-opinion accept
 
 ### 6. Record
 
-Write `.pies/learnings/<id>.md` only for reusable repository knowledge that would change how a later engineer plans, implements, or verifies work: a non-obvious invariant or architectural constraint; a recurring footgun or failure mode; an undocumented verification, setup, or operational requirement; misleading convention or dependency behavior; or a decision needed to work safely in the area. Include evidence and affected paths. Exclude task summaries, changed-file lists, temporary failures, implementation narration, and facts obvious from code. Write nothing when no durable learning exists.
+Write `<PIES_ARTIFACT_ROOT>/learnings/<id>.md` only for reusable repository knowledge that would change how a later engineer plans, implements, or verifies work: a non-obvious invariant or architectural constraint; a recurring footgun or failure mode; an undocumented verification, setup, or operational requirement; misleading convention or dependency behavior; or a decision needed to work safely in the area. Include evidence and affected paths. Exclude task summaries, changed-file lists, temporary failures, implementation narration, and facts obvious from code. Write nothing when no durable learning exists.
 
 Return this contract, even on failure:
 
