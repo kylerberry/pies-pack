@@ -19,7 +19,7 @@ Open this repository as a trusted Pi project, or install it as a Pi package. The
 /skill:pies <task>
 /skill:pies --afk <task>
 /skill:pies-decompose-to-dag <spec>
-/skill:pies-execute-dag [--afk] [dag.json]
+/skill:pies-execute-dag [--afk] [--barriered] [dag.json]
 /skill:pies-create-verification-skill
 ```
 

@@ -14,7 +14,7 @@ Accept `pies [--afk] <task-or-node-packet>`. Reject unknown flags.
 Normalize to exactly `id`, `intent`, `change_spec`, `acceptance_criteria`, plus run metadata `provenance`, `kind`, and `worktree`:
 
 - DAG packet: preserve all four content fields byte-for-byte, set `provenance: dag`, and use its supplied worktree.
-- Standalone task: author the four fields, set `provenance: authored`, and create `tmp/worktree-<id>` from the current branch. Before planning, apply the two-PR, reviewer-budget, and intent-smell tests from `pies-decompose-to-dag`. If two independently valuable mergeable outcomes exist, stop and recommend that skill.
+- Standalone task: author the four fields, set `provenance: authored`, and create `$HOME/.worktrees/<repo-basename>/worktree-<id>` from the current branch. Before planning, apply the two-PR, reviewer-budget, and intent-smell tests from `pies-decompose-to-dag`. If two independently valuable mergeable outcomes exist, stop and recommend that skill.
 - Classify `kind` as `feature`, `bug`, or `refactor`. Features use criterion-first red/green tests; bugs first reproduce the symptom; refactors keep existing tests green and prove behavior preservation.
 
 Do all work in the dedicated worktree. In DAG mode, never merge. In standalone mode, never publish before the Publication gate.
@@ -24,10 +24,21 @@ Do all work in the dedicated worktree. In DAG mode, never merge. In standalone m
 Do not write PIES artifacts under the repository or worktree. At the start of every run, derive one stable, user-level artifact root shared by every worktree of the repository:
 
 ```text
-$HOME/.pi/agent/pies/<repo-basename>-<first-12-hex-of-sha256(remote.origin.url)>
+$HOME/.pies/<category>/<repo-basename>/
 ```
 
-When no `remote.origin.url` exists, use the repository's Git common-directory path as the hash input. Call the resulting absolute path `PIES_ARTIFACT_ROOT`. Create `runs/` and `learnings/` beneath this root. The hash prevents collisions between repositories with the same basename without placing a remote URL, credentials, or other identity data in a path. Use absolute paths beneath this root for the normalized node, plan, child reports, verification evidence, and learning records. Never rely on a worktree-local `.pies/` directory, even when it is ignored.
+Derive `<repo-basename>` from the repository's main checkout — the basename of the parent of `git rev-parse --git-common-dir` — never from the current worktree's directory name, so every worktree of one repository shares one root. Call `$HOME/.pies` `PIES_ARTIFACT_ROOT`. Create `runs/<repo-basename>/` beneath it as needed (`waves/<repo-basename>/` in DAG mode). If two distinct repositories share a basename, disambiguate the directory explicitly and record the choice in both repositories' AGENTS.md. Use absolute paths beneath this root for the normalized node, plan, child reports, and verification evidence. Never rely on a worktree-local `.pies/` directory, even when it is ignored.
+
+## Project knowledge
+
+Do not assume `docs/learnings/` or any other directory exists. Before Scout, resolve a repository knowledge map:
+
+1. Read `pies.config.yaml` for optional `knowledge.sources` and `knowledge.learning_sink`.
+2. Read project instructions for named documentation roots, indexes, query procedures, or a learning sink.
+3. When a configured source is a wiki or documentation root, follow its documented entry point and query procedure before reading individual pages.
+4. If configuration and project instructions conflict, record the conflict and stop before writing a learning. If neither names a sink, read only explicit sources and write no durable project learning.
+
+`knowledge.sources` is a list of repository-relative source roots or entry documents. `knowledge.learning_sink` is one repository-relative destination for newly discovered reusable knowledge. The lead records the resolved sources and sink, or their absence, in its plan. Never create a default knowledge directory.
 
 ## Phase control
 
@@ -48,7 +59,7 @@ Check child activity at the inactivity threshold. Surface an inactive phase to t
 
 ### 1. Ground
 
-Launch `scout` to inspect affected code, project instructions, `pies.config.yaml`, its referenced verification skills and feature guides, actual package scripts, and `<PIES_ARTIFACT_ROOT>/learnings/*.md`. The scout returns a bounded file under `<PIES_ARTIFACT_ROOT>/runs/<id>/`; the lead reads and retains that grounding through planning, review, and evaluation. The worker receives the plan and file pointers, not the scout transcript or lead context. Standalone runs also use available session/project recall. A trivial one-function task that easily passes reviewer-budget may skip grounding only with a recorded reason.
+Launch `scout` to inspect affected code, project instructions, `pies.config.yaml`, the resolved repository knowledge sources, referenced verification skills and feature guides, and actual package scripts. The scout returns a bounded file under `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/`; the lead reads and retains that grounding through planning, review, and evaluation. The worker receives the plan and file pointers, not the scout transcript or lead context. Standalone runs also use available session/project recall. A trivial one-function task that easily passes reviewer-budget may skip grounding only with a recorded reason.
 
 During planning:
 
@@ -56,7 +67,7 @@ During planning:
 - For changes crossing a function boundary, write a types-and-signatures sketch.
 - Stop for human approval when work spans two or more domains, has security implications, or changes a public API/surface. `--afk` does not bypass this gate.
 
-Write the normalized node and plan to `<PIES_ARTIFACT_ROOT>/runs/<id>/` and pass their absolute paths. The plan references, not restates, DAG criteria.
+Write the normalized node and plan to `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/` and pass their absolute paths. The plan references, not restates, DAG criteria.
 
 ### 2. Protect the bar
 
@@ -91,7 +102,9 @@ A pass requires the lead's acceptance and, when triggered, second-opinion accept
 
 ### 6. Record
 
-Write `<PIES_ARTIFACT_ROOT>/learnings/<id>.md` only for reusable repository knowledge that would change how a later engineer plans, implements, or verifies work: a non-obvious invariant or architectural constraint; a recurring footgun or failure mode; an undocumented verification, setup, or operational requirement; misleading convention or dependency behavior; or a decision needed to work safely in the area. Include evidence and affected paths. Exclude task summaries, changed-file lists, temporary failures, implementation narration, and facts obvious from code. Write nothing when no durable learning exists.
+When the resolved knowledge map names a learning sink, write durable learnings there. Otherwise write no project learning. Write only reusable repository knowledge that would change how a later engineer plans, implements, or verifies work: a non-obvious invariant or architectural constraint; a recurring footgun or failure mode; an undocumented verification, setup, or operational requirement; misleading convention or dependency behavior; or a decision needed to work safely in the area. Include evidence and affected paths. Exclude task summaries, changed-file lists, temporary failures, implementation narration, and facts obvious from code. Only knowledge that spans repositories and has no single home goes under `<PIES_ARTIFACT_ROOT>/learnings/<repo-basename>/`.
+
+The lead owns `run-record.json` in its packet-supplied run directory (a DAG attempt directory) or, for a standalone run, `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/`. Write it after Record, for every terminal lead outcome. It is a compact, normalized index record for later analysis—not a transcript. Include only observed values: record version; repository identity and base revision; node ID and provenance; immutable `routing_input` containing exactly the pre-routing `intent` and `change_spec`; final kind; optional `routing_result` when a router ran (choice, confidence, flags, rationale, and lead disposition); resolved knowledge sources and sink; criteria disposition; phase deadline/inactivity events; referenced plan, grounding, verification, evaluator, and node-contract paths; acceptance and `Unproved` status; durable-learning paths; and the worktree/commit when known. Link to raw artifacts by absolute path; do not copy raw output, transcripts, secrets, or estimated model cost. Calibration passes only `routing_input` to a router, never later record fields. The supervisor separately owns DAG `terminal.json` and merge facts.
 
 Return this contract, even on failure:
 

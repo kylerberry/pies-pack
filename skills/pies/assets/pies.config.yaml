@@ -1,5 +1,12 @@
 version: 1
 
+# Optional repository knowledge map. PIES never assumes a docs/learnings/ directory.
+# `sources` names documentation roots or entry documents Scout should consult.
+# `learning_sink` is the one destination for reusable project knowledge; use null when none exists.
+knowledge:
+  sources: []
+  learning_sink: null
+
 # Run every applicable check; no entry covers another.
 checks:
   test: npm test

@@ -17,19 +17,23 @@ PIES is a lead-owned code-change workflow. The initiating session is the lead fo
 ## Node lifecycle
 
 1. Normalize input and classify feature, bug, or refactor work.
-2. Ground with scout output and prior learnings.
+2. Ground with scout output and resolved project knowledge sources; PIES does not assume a fixed learning directory.
 3. Delegate implementation to one worker in an isolated worktree.
 4. Run the deletion-only simplifier.
 5. Lead verifies and evaluates; escalation gets a cold second opinion.
-6. Return a complete node contract. `Unproved` means failure, not partial success.
+6. Lead writes a compact `run-record.json` linked to raw evidence, then returns a complete node contract. `Unproved` means failure, not partial success.
 
 Verification uses deterministic checks and the applicable real surface. [[../sources/adr-008|ADR 008]] defines the verify map; [[../sources/adr-012|ADR 012]] defines the contract.
 
 ## DAG lifecycle
 
-The supervisor derives readiness from first-parent Git trailers, creates isolated worktrees, gates wave barriers on complete node contracts, and merges passing nodes serially with `--no-ff`. Execution hosting is selected by the invoking prompt, not by the DAG skill. [[../sources/adr-014|ADR 014]] covers Git-derived status.
+The supervisor derives readiness from first-parent Git trailers, creates isolated worktrees, and merges passing nodes serially with `--no-ff`. Default execution is a rolling ready frontier: a non-passing node freezes only transitive dependents, while a new merge can admit newly ready work up to the caller-selected runtime limit. `--barriered` restores a deliberate batch boundary; shared-exclusive surfaces always serialize. Execution hosting is selected by the invoking prompt, not by the DAG skill. [[../sources/adr-014|ADR 014]] covers Git-derived status; [[../sources/adr-019|ADR 019]] covers admission policy.
 
 > ⚠️ Unverified: durable node-session execution and its artifact heartbeat protocol need a disposable-repository acceptance test. See [[../sources/herdr-node-lifecycle-proof|node lifecycle proof report]].
+
+## Historical evidence
+
+Raw run artifacts live under `~/.pies` for audit and diagnosis. The lead writes a compact, normalized run record that preserves immutable pre-routing `intent` and `change_spec`; the DAG supervisor separately records terminal classification and merge facts. Future self-improvement work should query these curated records, terminal outcomes, and wave briefs rather than raw checkpoints or transcripts. Graphify is the proposed query layer; it is not yet integrated.
 
 ## Comprehension and publication
 

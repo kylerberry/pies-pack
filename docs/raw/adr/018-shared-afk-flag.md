@@ -30,4 +30,4 @@ Without `--afk`, `pies` runs every phase through Record without pausing. It stop
 
 ## Action Items
 
-1. [ ] Replace `--merge auto|hitl` with `--afk` in `pies-execute-dag`, mapping `hitl` behavior to the default.
+1. [x] Replace `--merge auto|hitl` with `--afk` in `pies-execute-dag`, mapping `hitl` behavior to the default.

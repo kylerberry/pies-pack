@@ -1,4 +1,4 @@
-# ADR-003: Node lead as a depth-2 session
+# ADR-003: Node lead as a context role
 
 **Status:** Accepted
 **Date:** 2026-09-20
@@ -6,48 +6,44 @@
 
 ## Context
 
-ADR-002 needs a lead agent that spawns a worker. The natural way to run a DAG is from a long-running PM session: tell it to execute the DAG, and it spawns one subagent per node, which becomes that node's lead and spawns its own children.
+ADR-002 requires a lead that holds grounding, plan, review, and evaluation context while a worker writes code. The prior decision bound that role to nested session topology. A direct PIES retry showed that an aggregate nested lead can time out across otherwise separable phases; extending its aggregate timeout did not address stalled recovery.
 
-That is two levels of nesting. The current `pies-execute-dag` forbids it: hard constraint 2 limits depth to 1, and writers and advisors may not launch further agents. The constraint exists because running CRAFTS with a long-lived orchestrator and two nesting levels was unreliable: failed sessions and missed instructions. pi-subagents supports two levels.
+Session hosting, fan-out, and process lifecycle are operational choices. Binding them into the skill makes PIES depend on one launcher rather than the evidence a node must produce.
 
 ## Decision
 
-Allow two levels. The supervisor spawns one lead per node. The lead runs `pies` and spawns scout, worker, simplifier, and any second opinion as its own children. Workers, scouts, and simplifiers have no subagent tool.
+Define the lead by responsibility and context, not by launch topology.
 
-Standalone runs use the same shape one level up: the pi session running `/pies` is the lead.
-
-The same lead behavior applies in both modes, so `pies/SKILL.md` is the only definition of the stages.
-
-Mitigations for the known failure modes, drawn from pstack's delegation rules:
-
-- Children receive file pointers, not inlined context.
-- A child that needs different direction is replaced by a fresh child with consolidated scope, not steered or resumed mid-run.
-- Child output is bounded, and results return as files.
+- In an ordinary `/pies` run, the initiating session is the lead.
+- In DAG mode, the invoking prompt establishes one isolated node lead in the assigned worktree.
+- The lead runs `pies`, retains grounding through planning, review, and evaluation, and never writes production code.
+- The node packet, heartbeat, checkpoints, and final output contract are file-backed and mechanism-neutral.
+- `pies-execute-dag` defines worktree isolation, node artifacts, terminal evidence, and wave barriers. The invoking prompt selects the execution mechanism.
+- The lead's implementation phases remain defined only in `pies/SKILL.md`.
 
 ## Options Considered
 
-### Option A: Supervisor spawns a node lead, lead spawns children (chosen)
-**Pros:** Matches how the operator works. One realization of the lead for both modes. Plan and review context stay in one agent.
-**Cons:** Depth 2, the shape that failed under CRAFTS.
+### Option A: Bind PIES to a nested lead topology
+**Pros:** A concrete launch recipe.
+**Cons:** Aggregate lifecycle failures become PIES failures. The skill cannot work under another safe runner.
 
-### Option B: Static workflow protocol at depth 1
-**Pros:** Proven wave machinery, no nesting.
-**Cons:** Two realizations of one stage list. No agent holds both plan and review context.
-
-## Trade-off Analysis
-
-The CRAFTS failures were observed with a different protocol and a different extension version. Whether depth 2 fails under PIES is an empirical question, and the mitigations above address the likeliest mechanisms. Option B stays available as a fallback without changing any other ADR.
+### Option B: Define a lead context role; leave hosting to the invoking prompt (chosen)
+**Pros:** One lead behavior for direct and DAG work. Evidence and wave barriers remain stable across runners. Operational failures stay visible as infrastructure failures.
+**Cons:** The invoking prompt must supply a safe isolated execution mechanism.
 
 ## Consequences
 
-- `pies-execute-dag` hard constraints 2 and 5 change to allow a node lead.
-- Nesting failures will surface as sessions that fail or return without completing their output contract (ADR-012).
+- Ordinary `/pies` does not add an intermediate lead layer.
+- DAG node leads must receive an isolated worktree and bounded packet.
+- A runner cannot prove node success: only a complete, validated node contract can.
+- Hosting-specific health and cancellation behavior belongs in the invoking prompt or runner configuration, not PIES skills.
 
 ## Revisit when
 
-Node leads repeatedly fail, lose instructions, or return incomplete output contracts. Then adopt Option B: add `--protocol pies` to the static workflow and run the stages as depth-1 siblings.
+The mechanism-neutral packet, heartbeat, checkpoint, and contract protocol repeatedly fails to provide recoverable node evidence across supported runners.
 
 ## Action Items
 
-1. [ ] Update `pies-execute-dag`: supervisor launches one node lead per node instead of the static workflow; lead may spawn children; children may not.
-2. [ ] Check `maxSubagentSpawnsPerRun` (default 64) against 3 concurrent nodes times their children and retries.
+1. [x] Update `pies` so the initiating session is the direct-run lead.
+2. [x] Update `pies-execute-dag` so it defines node evidence and barriers, not hosting.
+3. [ ] Prove the artifact protocol with a disposable DAG lifecycle test before relying on a new runner in production.

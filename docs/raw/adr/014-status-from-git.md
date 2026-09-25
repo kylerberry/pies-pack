@@ -35,5 +35,5 @@ The DAG regularly becomes a work checklist, and agents get lost finding the next
 
 ## Action Items
 
-1. [ ] Write `scripts/dag-next`.
-2. [ ] Add the trailer and `--no-ff` to the supervisor merge step.
+1. [x] Write `scripts/dag-next`.
+2. [x] Add the trailer and `--no-ff` to the supervisor merge step.

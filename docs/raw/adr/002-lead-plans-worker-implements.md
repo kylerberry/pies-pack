@@ -27,7 +27,7 @@ The lead plans, reviews the worker's diff, and evaluates. The worker writes code
 ## Consequences
 
 - Plan quality determines how cheap the worker can be (ADR-015).
-- The lead runs as a depth-2 session under the DAG supervisor (ADR-003).
+- The lead's context role and execution boundary are defined by ADR-003.
 
 ## Action Items
 

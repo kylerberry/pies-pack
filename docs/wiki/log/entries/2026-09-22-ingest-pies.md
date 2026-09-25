@@ -14,4 +14,4 @@ sources:
 
 Moved the 18 ADRs and ADR index into `docs/raw/adr/`; moved two execution reports into `docs/raw/reviews/`. Added one wiki source page per moved document, [[../../architecture/pies-workflow|PIES workflow]], and [[../../output/self-improving-pies|Self-improving PIES]].
 
-> ⚡ Contradiction: ADR-003 describes depth-2 nested lead sessions, while the current `pies-execute-dag` skill delegates execution-hosting choice to the invoking prompt. The implementation is intentionally ahead of the ADR and needs a recorded ADR amendment or replacement.
+ADR-003 was revised after ingest: the lead is now a context role, and execution hosting is selected by the invoking prompt. The current `pies-execute-dag` skill conforms to that decision.

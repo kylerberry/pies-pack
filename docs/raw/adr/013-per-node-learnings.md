@@ -12,10 +12,10 @@ Self-Improve records durable learnings, footguns, and gotchas discovered during 
 
 ## Decision
 
-- Each node writes learnings to its own file in the repository.
+- Each node writes learnings to a unique file in the resolved repository knowledge sink, when a sink exists.
 - The files merge with the node's code, so later nodes read them as merged code, consistent with hard constraint 3.
-- Grounding reads learnings from prior nodes (ADR-006).
-- The supervisor consolidates learnings into AGENTS.md or a memory sink at the wave boundary, after the wave's merges.
+- Grounding reads resolved repository knowledge sources (ADR-006); it does not assume a fixed learning directory.
+- After each successful merge, the supervisor verifies learning placement. It does not consolidate into a shared file, and learning verification does not require a scheduling barrier.
 
 ## Options Considered
 
@@ -27,4 +27,4 @@ Self-Improve records durable learnings, footguns, and gotchas discovered during 
 
 ## Consequences
 
-- Consolidation happens once per wave, in one session, so it never conflicts.
+- Learning placement is verified after merge; no shared-file consolidation is required, so it never conflicts.

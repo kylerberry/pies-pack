@@ -6,7 +6,7 @@ Decisions for the reworked PIES workflow. The canonical skill is `pies` (`/pies`
 |---|---|---|
 | [001](001-hands-off-operation.md) | Hands-off operation, comprehension over diff review | Accepted |
 | [002](002-lead-plans-worker-implements.md) | Lead plans and evaluates, worker implements | Accepted |
-| [003](003-lead-realization-by-context.md) | Node lead as a depth-2 session | Accepted |
+| [003](003-lead-realization-by-context.md) | Node lead as a context role | Accepted |
 | [004](004-input-normalization.md) | Input normalization and criteria provenance | Accepted |
 | [005](005-work-kind-variants.md) | Work kind selects the procedure variant | Accepted |
 | [006](006-grounding-and-design-aids.md) | Grounding and design aids | Accepted |
@@ -22,10 +22,11 @@ Decisions for the reworked PIES workflow. The canonical skill is `pies` (`/pies`
 | [016](016-positive-agent-bindings.md) | Positive agent bindings | Accepted |
 | [017](017-wave-brief.md) | Wave brief written by the PM session | Accepted |
 | [018](018-shared-afk-flag.md) | One `--afk` flag, human approval by default | Accepted |
+| [019](019-dag-admission-policy.md) | DAG structure is durable; admission policy is replaceable | Accepted |
 
 ## Open questions
 
-None.
+- **System-1 task-kind routing.** Should a fast classifier route incoming tasks to kind-specific PIES operations (bug, feature, refactor, performance, tests, documentation)? Discussion points and open questions live in the [roadmap](../../wiki/planning/roadmap.md).
 
 ## Deferred
 

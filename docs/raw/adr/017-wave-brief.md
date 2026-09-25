@@ -3,6 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-09-20
 **Deciders:** Kyler
+**Amended:** 2026-09-23 by ADR-019
 
 ## Context
 
@@ -12,12 +13,12 @@ The operator runs a long-lived PM session and tells it to execute the DAG. That 
 
 ## Decision
 
-The PM session writes a wave brief at each wave boundary, after merges and learnings consolidation (ADR-013).
+The PM session updates a cumulative brief after each successful merge. A barriered group may still provide a deliberate review boundary, but a scheduler wave is not required (ADR-019).
 
 - **Sources.** For nodes the PM spawned, the returned output contracts. For work run in sessions outside its own fan-out, `recall` over those sessions.
 - **Form.** Cumulative. Each wave's brief is an edit of the previous brief, not a rebuild, so reading it stays bounded as the codebase grows.
 - **Framing.** What the product now does, written for its users and its maintainer, before any implementation detail.
-- **Storage.** A file in the repository. The PM reads the previous brief from the file rather than carrying past waves in its context.
+- **Storage.** `<PIES_ARTIFACT_ROOT>/waves/<repo-basename>/wave-brief.md`. The PM reads the previous brief from the file rather than carrying past work in its context.
 
 ## Options Considered
 

@@ -15,7 +15,7 @@ Diff review does not scale with parallel nodes, and teams are already shipping a
 Design PIES for hands-off operation. Human effort goes into comprehension artifacts, not diff review:
 
 - The node output contract (ADR-012).
-- A cumulative wave-boundary brief (open question).
+- A cumulative wave-boundary brief (ADR-017).
 - The long-lived PM session, which reads those artifacts and asks questions.
 
 Hands-on review remains available by running `pies` or `pies-execute-dag` without `--afk` (ADR-018). It is not the design target.
@@ -38,9 +38,9 @@ Hands-on review remains available by running `pies` or `pies-execute-dag` withou
 
 - Evaluation is the only gate between a worker's diff and the base branch. ADR-008, ADR-011, and ADR-012 carry that weight.
 - Node output must be readable without the diff.
-- A wave brief is needed and is not yet designed.
+- The wave brief is designed in ADR-017; validating it on a real DAG is still pending.
 
 ## Action Items
 
-1. [ ] Design the wave-boundary brief.
+1. [x] Design the wave-boundary brief (ADR-017).
 2. [ ] Validate on one real node by reading only its output contract before merging.
