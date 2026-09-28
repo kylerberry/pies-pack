@@ -12,9 +12,9 @@ Self-Improve records durable learnings, footguns, and gotchas discovered during 
 
 ## Decision
 
-- Each node writes learnings to a unique file in the resolved repository knowledge sink, when a sink exists.
+- Each node writes learnings to a unique file in the configured knowledge sink: a discovered repository-relative destination, or the `$HOME/.pies/learnings/<repo-basename>/` user-level fallback when no project-local sink is configured or discovered.
 - The files merge with the node's code, so later nodes read them as merged code, consistent with hard constraint 3.
-- Grounding reads resolved repository knowledge sources (ADR-006); it does not assume a fixed learning directory.
+- Grounding reads resolved knowledge sources, always including the sink itself (ADR-006); it does not assume a fixed learning directory.
 - After each successful merge, the supervisor verifies learning placement. It does not consolidate into a shared file, and learning verification does not require a scheduling barrier.
 
 ## Options Considered

@@ -31,14 +31,14 @@ Derive `<repo-basename>` from the repository's main checkout — the basename of
 
 ## Project knowledge
 
-Do not assume `docs/learnings/` or any other directory exists. Before Scout, resolve a repository knowledge map:
+Do not assume `docs/learnings/` or any other repository directory exists. Before Scout, resolve a repository knowledge map:
 
-1. Read `pies.config.yaml` for optional `knowledge.sources` and `knowledge.learning_sink`.
-2. Read project instructions for named documentation roots, indexes, query procedures, or a learning sink.
-3. When a configured source is a wiki or documentation root, follow its documented entry point and query procedure before reading individual pages.
-4. If configuration and project instructions conflict, record the conflict and stop before writing a learning. If neither names a sink, read only explicit sources and write no durable project learning.
+1. Read `pies.config.yaml` for `knowledge.sources` and `knowledge.learning_sink`. The configured sink is authoritative.
+2. When a configured source is a wiki or documentation root, follow its documented entry point and query procedure before reading individual pages.
+3. For a legacy or absent config, inspect project instructions for documentation sources, then use `$HOME/.pies/learnings/<repo-basename>/` as the sink. Do not stop or ask the user.
+4. Always include the resolved sink as a Scout source; create it only when Record has a durable learning to write.
 
-`knowledge.sources` is a list of repository-relative source roots or entry documents. `knowledge.learning_sink` is one repository-relative destination for newly discovered reusable knowledge. The lead records the resolved sources and sink, or their absence, in its plan. Never create a default knowledge directory.
+`knowledge.sources` is a list of repository-relative source roots or entry documents. `knowledge.learning_sink` is either a repository-relative destination or `$HOME/.pies/learnings/<repo-basename>/`. The lead records the resolved sources and sink in its plan. A project may later replace the fallback by setting a project-local sink in `pies.config.yaml`.
 
 ## Phase control
 
@@ -102,7 +102,7 @@ A pass requires the lead's acceptance and, when triggered, second-opinion accept
 
 ### 6. Record
 
-When the resolved knowledge map names a learning sink, write durable learnings there. Otherwise write no project learning. Write only reusable repository knowledge that would change how a later engineer plans, implements, or verifies work: a non-obvious invariant or architectural constraint; a recurring footgun or failure mode; an undocumented verification, setup, or operational requirement; misleading convention or dependency behavior; or a decision needed to work safely in the area. Include evidence and affected paths. Exclude task summaries, changed-file lists, temporary failures, implementation narration, and facts obvious from code. Only knowledge that spans repositories and has no single home goes under `<PIES_ARTIFACT_ROOT>/learnings/<repo-basename>/`.
+Write durable learnings to the resolved knowledge sink. Write only reusable repository knowledge that would change how a later engineer plans, implements, or verifies work: a non-obvious invariant or architectural constraint; a recurring footgun or failure mode; an undocumented verification, setup, or operational requirement; misleading convention or dependency behavior; or a decision needed to work safely in the area. Include evidence and affected paths. Exclude task summaries, changed-file lists, temporary failures, implementation narration, and facts obvious from code.
 
 The lead owns `run-record.json` in its packet-supplied run directory (a DAG attempt directory) or, for a standalone run, `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/`. Write it after Record, for every terminal lead outcome. It is a compact, normalized index record for later analysis—not a transcript. Include only observed values: record version; repository identity and base revision; node ID and provenance; immutable `routing_input` containing exactly the pre-routing `intent` and `change_spec`; final kind; optional `routing_result` when a router ran (choice, confidence, flags, rationale, and lead disposition); resolved knowledge sources and sink; criteria disposition; phase deadline/inactivity events; referenced plan, grounding, verification, evaluator, and node-contract paths; acceptance and `Unproved` status; durable-learning paths; and the worktree/commit when known. Link to raw artifacts by absolute path; do not copy raw output, transcripts, secrets, or estimated model cost. Calibration passes only `routing_input` to a router, never later record fields. The supervisor separately owns DAG `terminal.json` and merge facts.
 

@@ -1,11 +1,11 @@
 version: 1
 
-# Optional repository knowledge map. PIES never assumes a docs/learnings/ directory.
-# `sources` names documentation roots or entry documents Scout should consult.
-# `learning_sink` is the one destination for reusable project knowledge; use null when none exists.
+# Repository knowledge map. `sources` names documentation roots or entry documents Scout should consult.
+# `learning_sink` is required: use a discovered repository-relative destination when one exists;
+# otherwise retain this user-level fallback. Scout also reads the resolved sink.
 knowledge:
   sources: []
-  learning_sink: null
+  learning_sink: $HOME/.pies/learnings/<repo-basename>/
 
 # Run every applicable check; no entry covers another.
 checks:

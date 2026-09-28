@@ -19,6 +19,7 @@ Determine:
 - **Observe:** action plus result, including visible output and side effects such as files, rows, messages, logs, refs, or artifacts.
 - **Isolate:** classify each surface as `per-process`, `per-worktree`, or `shared-exclusive`. Prefer unique ports, profiles, and data directories derived from the worktree or run ID.
 - **Cleanup:** exact teardown for owned processes and scratch state. Never kill by process name or delete evidence.
+- **Knowledge:** documentation roots and entry indexes Scout should read, plus any existing project-local durable-learning destination.
 
 Read project instructions, package scripts, Makefiles, CI definitions, routes, commands, existing tests, and documentation. Prefer existing production-facing harnesses and stable handles such as ARIA labels, data attributes, prompt strings, command names, and route paths.
 
@@ -93,10 +94,16 @@ Describe observable success and side effects. Do not claim coverage for unexecut
 
 Keep it a concise machine-readable router; the generated skill owns operational explanation. Preserve existing entries. Add or tighten freely; never weaken or remove a check, surface, or feature without explicit approval and a recorded amendment.
 
+Discover project documentation roots and a project-local durable-learning sink from repository instructions and docs. Write them into `knowledge`. When no sink is discovered, write `$HOME/.pies/learnings/<repo-basename>/`; do not ask the user or invent a repository directory. Scout reads the configured sources and sink on later `/pies` runs.
+
 Use this shape, omitting lifecycle fields that do not apply to short-lived surfaces:
 
 ```yaml
 version: 1
+knowledge:
+  sources: [<discovered repository-relative doc roots or entry documents>]
+  learning_sink: <discovered repository-relative sink | $HOME/.pies/learnings/<repo-basename>/>
+
 checks:
   test: <existing repository command>
 

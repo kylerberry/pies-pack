@@ -20,5 +20,6 @@ updated: 2026-09-22
 - [[log/entries/2026-09-24-kind-routing-decisions|2026-09-24 — Recorded kind-routing policy decisions]]
 - [[log/entries/2026-09-24-jev-kind-routing-calibration|2026-09-24 — Ran first JEV task-kind calibration]]
 - [[log/entries/2026-09-24-routing-input-record|2026-09-24 — Preserved pre-routing input for future calibration]]
+- [[log/entries/2026-09-24-configured-knowledge-sink|2026-09-24 — Configured knowledge sink with user-level fallback]]
 
 See [[index|Documentation Index]].

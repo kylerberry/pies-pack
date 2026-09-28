@@ -77,7 +77,7 @@ On conflict or red post-merge verification: undo that merge without discarding p
 
 After every successful merge:
 
-1. Verify the node's durable learning landed in its resolved repository knowledge sink when one exists; a missing sink means no project learning is required. Only cross-repo learnings may live under `<PIES_ARTIFACT_ROOT>/learnings/<repo-basename>/`.
+1. Verify the node's durable learning landed in its configured knowledge sink, including the `$HOME/.pies/learnings/<repo-basename>/` fallback when no project-local sink was discovered.
 2. Update `<PIES_ARTIFACT_ROOT>/waves/<repo-basename>/wave-brief.md` cumulatively. Lead with what users and maintainers can now do, then limits and proof. Use returned contracts for spawned work; use recall only for relevant work completed outside this fan-out or gaps in a contract. Edit the prior brief rather than rebuilding it.
 3. In rolling mode, rerun `pies-dag-next` and admit newly ready work until the caller-selected active-node limit is reached. In barriered mode, wait until the admitted group is terminal and resolved before opening the next group.
 
