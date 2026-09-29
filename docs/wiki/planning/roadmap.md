@@ -44,7 +44,7 @@ Existing validation debt. Most open work is evidence, not features.
 
 All items below are advisory. They record a bounded classification, score, or choice with evidence references; the lead, evaluator, deterministic checks, and human gates retain authority.
 
-1. **Task-kind routing.** Select a likely work kind and operation profile at normalization; score ambiguity and let the lead confirm or override. The proposed [[kind-profile-matrix|kind-profile matrix]] defines the routing target. This is the first implementation candidate.
+1. **Task-kind routing.** Registry shipped (`skills/pies/assets/kind-profiles.json`, ADR-020): seven kinds, shadow-mode default, report-only `research`/`codebase-analysis` standalone profiles, DAG rejection of report nodes. Next: accumulate ≥25 shadow-mode `routing_input` pairs, then calibrate per-kind precision above `0.85` before enabling authoritative auto-routing. The proposed [[kind-profile-matrix|kind-profile matrix]] records the design rationale.
 2. **Escalation triage.** Flag possible multi-domain, public-surface, or security implications at intake. It may raise an escalation; it must never clear one.
 3. **Historical-run tagging and clustering.** Tag lead-owned run records, terminal outcomes, and wave briefs; identify recurring failure patterns for the self-improvement meta agent. Graphify remains the future corpus-query layer.
 4. **Scout source ranking.** Rank likely-relevant project knowledge pages, learnings, verification guides, and code areas. Scout must still read the selected sources.

@@ -23,6 +23,7 @@ Require:
 - `meta.repo`, `meta.branch`, and five-field nodes;
 - a clean base checkout at `meta.branch`; and
 - `pies-dag-next --dag <path> --json` succeeds.
+- no report-only kind (`research`, `codebase-analysis`): such work merges nothing and is never admitted; reject the node and recommend a standalone `/pies` run.
 
 Do not store status in the DAG or node files. Before every admission decision, derive `done` and `ready` from first-parent Git history with `pies-dag-next`.
 

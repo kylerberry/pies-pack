@@ -1,0 +1,83 @@
+{
+  "$comment": "PIES task-kind routing registry. Runtime truth for kind routing; docs/wiki/planning/kind-profile-matrix.md is the design rationale. Routing input is pre-run intent + change_spec only.",
+  "routing": {
+    "mode_default": "shadow",
+    "modes": ["shadow", "authoritative"],
+    "mode_source": "pies.config.yaml routing.mode overrides mode_default",
+    "router_input_fields": ["intent", "change_spec"],
+    "confidence_threshold": 0.85,
+    "auto_route_kinds": ["bug", "feature", "refactor", "test"],
+    "manual_kinds": ["documentation", "research", "codebase-analysis"],
+    "unavailable_policy": "record routing_result unavailable; proceed with base normalization and lead-selected kind",
+    "mixed_policy": "split into independently valuable nodes when possible; otherwise apply the stricter applicable profile and record the decision",
+    "fallback_kind": null
+  },
+  "profiles": {
+    "bug": {
+      "inclusion_signals": "A reported or observed behavior violates an existing expectation",
+      "required_grounding": "Symptom, expected behavior, causal area, prior regressions, affected surface",
+      "required_plan_artifact": "Minimal reproducer or diagnostic witness; causal hypothesis; regression target",
+      "proof_contract": "Witness demonstrates the defect before the fix when feasible; same path demonstrates expected behavior after; regression test or durable automated witness prevents recurrence",
+      "failure_rule": "No credible reproducer or witness means Unproved, never fixed",
+      "implementation": true,
+      "standalone_only": false
+    },
+    "feature": {
+      "inclusion_signals": "A new user, consumer, or system capability is requested",
+      "required_grounding": "Actor, journey, constraints, trust boundaries, target surface",
+      "required_plan_artifact": "Walking skeleton; criterion-to-proof map; types/signatures sketch at function boundaries",
+      "proof_contract": "Actor completes the journey on the correct real surface, or a real consumer integration proves an internal/library capability; direct evidence per criterion",
+      "failure_rule": "Unit tests alone do not prove a user-facing capability",
+      "implementation": true,
+      "standalone_only": false
+    },
+    "refactor": {
+      "inclusion_signals": "Structural or maintainability improvement with no intended observable behavior change",
+      "required_grounding": "Observable invariants, consumers, compatibility boundaries, behavior-preserving suite",
+      "required_plan_artifact": "Invariant map and change boundary; characterization tests cited by name, added before structural change when needed",
+      "proof_contract": "Named existing and characterization tests pass; checks pass; unchanged interfaces and behaviors have direct preservation evidence",
+      "failure_rule": "Any intentional behavior, contract, data-format, timing, or performance change routes to another kind",
+      "implementation": true,
+      "standalone_only": false
+    },
+    "test": {
+      "inclusion_signals": "The requested outcome is new or improved automated verification, not product behavior itself",
+      "required_grounding": "Requested proof mode (behavioral or coverage); existing coverage; fixture realism; relevant wrong behavior",
+      "required_plan_artifact": "Behavioral: test-oracle statement with condition, expected result, relevant incorrect behavior. Coverage: baseline, named scope, target threshold, report command",
+      "proof_contract": "Behavioral: test fails against a relevant deliberately introduced defect, prior behavior, or mutation (temporary targeted mutation is the accepted fallback) and passes intended behavior; stable. Coverage: baseline and final reports meet the explicit criterion for the named scope and the suite passes",
+      "failure_rule": "Coverage alone must not be presented as regression protection; implementation-detail assertions need explicit rationale; an exposed product defect routes as bug",
+      "implementation": true,
+      "standalone_only": false
+    },
+    "documentation": {
+      "inclusion_signals": "Human-facing or maintainer-facing information with no product behavior change",
+      "required_grounding": "Audience, local terminology, scope, affected information",
+      "required_plan_artifact": "None special; Scout hands the worker relevant sources and conventions",
+      "proof_contract": "No separate proof contract or real-surface requirement; lead evaluates accuracy, scope, clarity, and conventions before merge",
+      "failure_rule": "Any product-behavior change routes as a separate bug/feature node",
+      "procedure": "scout -> implement -> lead evaluate -> merge",
+      "implementation": true,
+      "standalone_only": false
+    },
+    "research": {
+      "inclusion_signals": "Read-only investigation producing an evidence-backed answer; no code change requested",
+      "required_grounding": "Authoritative sources, affected files, prior decisions, existing knowledge sink contents",
+      "required_plan_artifact": "Question list with expected evidence form per question",
+      "proof_contract": "Findings report answering the stated intent with cited files/sources per claim; explicit uncertainty and gaps; recommended next actions",
+      "failure_rule": "An unanswered core question without a recorded gap is Unproved; agent idleness is not success",
+      "procedure": "scout -> lead evaluates report; worker optional and read-only; no worktree, commit, merge, or publication gate",
+      "implementation": false,
+      "standalone_only": true
+    },
+    "codebase-analysis": {
+      "inclusion_signals": "Read-only architectural or maintainability analysis of the codebase",
+      "required_grounding": "Architecture docs, knowledge sink, module boundaries, dependency structure",
+      "required_plan_artifact": "Scope statement naming analyzed areas and excluded areas",
+      "proof_contract": "Scoped findings with file references; prioritized simplification/refactor recommendations; risks and dependencies; proposed independently executable follow-up tasks",
+      "failure_rule": "Findings without file references or without prioritized recommendations are Unproved",
+      "procedure": "scout -> lead evaluates report; worker optional and read-only; no worktree, commit, merge, or publication gate",
+      "implementation": false,
+      "standalone_only": true
+    }
+  }
+}

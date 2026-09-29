@@ -15,9 +15,11 @@ Normalize to exactly `id`, `intent`, `change_spec`, `acceptance_criteria`, plus 
 
 - DAG packet: preserve all four content fields byte-for-byte, set `provenance: dag`, and use its supplied worktree.
 - Standalone task: author the four fields, set `provenance: authored`, and create `$HOME/.worktrees/<repo-basename>/worktree-<id>` from the current branch. Before planning, apply the two-PR, reviewer-budget, and intent-smell tests from `pies-decompose-to-dag`. If two independently valuable mergeable outcomes exist, stop and recommend that skill.
-- Classify `kind` as `feature`, `bug`, or `refactor`. Features use criterion-first red/green tests; bugs first reproduce the symptom; refactors keep existing tests green and prove behavior preservation.
+- Classify `kind` using [kind-profiles.json](assets/kind-profiles.json): `feature`, `bug`, `refactor`, `test`, `documentation`, `research`, or `codebase-analysis`. In `shadow` mode (default) or when the router is unavailable, the lead selects the kind and records `routing_result` accordingly. In `authoritative` mode, a router (e.g. TypeSafe/JEV) receives only `routing_input` (`intent` + `change_spec`); apply its profile automatically only when the kind is in `auto_route_kinds`, confidence exceeds the registry threshold, and no mixed-work or escalation flag is raised; otherwise fall back to lead selection. `documentation`, `research`, and `codebase-analysis` are never auto-routed. Feature/bug/refactor/test follow their registry proof contracts; test work is behavioral or explicit-coverage mode.
 
 Do all work in the dedicated worktree. In DAG mode, never merge. In standalone mode, never publish before the Publication gate.
+
+**Report-only kinds** (`research`, `codebase-analysis`) skip the worktree, worker-as-writer, merge, and Publication gate: Scout investigates (an optional read-only worker may gather evidence), the lead evaluates the report against the registry proof contract, and the run terminates by returning the report. A report run is successful only when its contract is complete; agent idleness is not success. These kinds are standalone-only: a DAG packet or `pies-execute-dag` admission carrying one is rejected with a recommendation to run it standalone.
 
 ## Artifact location
 

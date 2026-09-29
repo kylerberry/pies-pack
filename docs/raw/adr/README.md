@@ -23,6 +23,7 @@ Decisions for the reworked PIES workflow. The canonical skill is `pies` (`/pies`
 | [017](017-wave-brief.md) | Wave brief written by the PM session | Accepted |
 | [018](018-shared-afk-flag.md) | One `--afk` flag, human approval by default | Accepted |
 | [019](019-dag-admission-policy.md) | DAG structure is durable; admission policy is replaceable | Accepted |
+| [020](020-task-kind-routing.md) | Task-kind routing | Accepted |
 
 ## Open questions
 

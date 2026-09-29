@@ -26,6 +26,7 @@ updated: 2026-09-22
 - [[sources/adr-001|ADR 001]] through [[sources/adr-006|ADR 006]]
 - [[sources/adr-007|ADR 007]] through [[sources/adr-012|ADR 012]]
 - [[sources/adr-013|ADR 013]] through [[sources/adr-019|ADR 019]]
+- [[sources/adr-020|ADR 020]]
 - [[sources/direct-pies-retry|Direct PIES Retry Report]]
 - [[sources/herdr-node-lifecycle-proof|Node Lifecycle Proof Report]]
 
