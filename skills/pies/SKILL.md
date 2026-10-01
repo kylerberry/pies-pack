@@ -90,7 +90,7 @@ Launch `worker` with paths to the node, plan, project instructions, verify map, 
 
 ### 4. Simplify and verify
 
-Launch `pies-simplifier` on the worker diff. It may delete only and may not remove a test covering a criterion. Then rerun every applicable check and real-surface command.
+Launch `pies-simplifier` on the worker diff and give it the run directory for `simplifier-report.md`. It may delete only and may not remove a test covering a criterion; its report lists each deletion (what, where, why not required, check that stays green) or states no safe deletion existed. Then rerun every applicable check and real-surface command. In Evaluate, check each reported deletion against the criteria before accepting.
 
 ### 5. Evaluate
 
@@ -106,7 +106,7 @@ A pass requires the lead's acceptance and, when triggered, second-opinion accept
 
 Write durable learnings to the resolved knowledge sink. Write only reusable repository knowledge that would change how a later engineer plans, implements, or verifies work: a non-obvious invariant or architectural constraint; a recurring footgun or failure mode; an undocumented verification, setup, or operational requirement; misleading convention or dependency behavior; or a decision needed to work safely in the area. Include evidence and affected paths. Exclude task summaries, changed-file lists, temporary failures, implementation narration, and facts obvious from code.
 
-The lead owns `run-record.json` in its packet-supplied run directory (a DAG attempt directory) or, for a standalone run, `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/`. Write it after Record, for every terminal lead outcome. It is a compact, normalized index record for later analysis—not a transcript. Include only observed values: record version; repository identity and base revision; node ID and provenance; immutable `routing_input` containing exactly the pre-routing `intent` and `change_spec`; final kind; optional `routing_result` when a router ran (choice, confidence, flags, rationale, and lead disposition); resolved knowledge sources and sink; criteria disposition; phase deadline/inactivity events; referenced plan, grounding, verification, evaluator, and node-contract paths; acceptance and `Unproved` status; durable-learning paths; and the worktree/commit when known. Link to raw artifacts by absolute path; do not copy raw output, transcripts, secrets, or estimated model cost. Calibration passes only `routing_input` to a router, never later record fields. The supervisor separately owns DAG `terminal.json` and merge facts.
+The lead owns `run-record.json` in its packet-supplied run directory (a DAG attempt directory) or, for a standalone run, `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/`. Write it after Record, for every terminal lead outcome. It is a compact, normalized index record for later analysis—not a transcript. Include only observed values: record version; repository identity and base revision; node ID and provenance; immutable `routing_input` containing exactly the pre-routing `intent` and `change_spec`; final kind; optional `routing_result` when a router ran (choice, confidence, flags, rationale, and lead disposition); resolved knowledge sources and sink; criteria disposition; phase deadline/inactivity events; referenced plan, grounding, simplifier, verification, evaluator, and node-contract paths; acceptance and `Unproved` status; durable-learning paths; and the worktree/commit when known. Link to raw artifacts by absolute path; do not copy raw output, transcripts, secrets, or estimated model cost. Calibration passes only `routing_input` to a router, never later record fields. The supervisor separately owns DAG `terminal.json` and merge facts.
 
 Return this contract, even on failure:
 
@@ -114,6 +114,8 @@ Return this contract, even on failure:
 # Node <id>
 ## Amendments
 - None | <weakened/removed bar and evidence>
+## Simplification
+- None | <each deletion with file, why not required by criteria, from `simplifier-report.md`>
 ## Capability proved
 <user/caller-visible capability, or "None">
 ## Proof
