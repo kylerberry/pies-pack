@@ -4,10 +4,31 @@
   "private": true,
   "description": "PIES planning, implementation, evaluation, and DAG execution skills",
   "type": "module",
+  "keywords": ["pi-package"],
   "bin": {
     "pies-dag-next": "./scripts/dag-next"
   },
   "scripts": {
-    "test": "python3 -m unittest discover -s tests -v"
+    "test": "tsx --test test/*.test.ts && python3 -m unittest discover -s tests -v",
+    "test:skills": "python3 -m unittest discover -s tests -v",
+    "test:fanout": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.84.4",
+    "@earendil-works/pi-ai": "0.85.1",
+    "@types/node": "^24.13.4",
+    "tsx": "^4.23.13",
+    "typebox": "1.1.38",
+    "typescript": "^5.9.3"
+  },
+  "pi": {
+    "extensions": ["./extensions"],
+    "prompts": ["./prompts"]
   }
 }

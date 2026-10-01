@@ -3,3 +3,5 @@ __pycache__/
 pies-adr/
 tests/
 .obsidian/
+node_modules/
+package-lock.json
