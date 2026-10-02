@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""Summarize PIES run records, including legacy record schemas."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+
+def object_at(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def normalize_record(path: Path) -> dict[str, Any]:
+    """Return the stable cross-version fields without changing raw evidence."""
+    record = object_at(json.loads(path.read_text()))
+    node = object_at(record.get("node"))
+    repository_value = record.get("repository")
+    repository = object_at(repository_value)
+    return {
+        "path": str(path),
+        "repository": repository.get("basename") or repository.get("name") or (
+            repository_value if isinstance(repository_value, str) else None
+        ),
+        "node_id": record.get("node_id") or record.get("nodeId") or node.get("id"),
+        # Current records use top-level kind; legacy records nest it in node.
+        "kind": record.get("kind") or node.get("kind"),
+        "routing_result": record.get("routing_result"),
+    }
+
+
+def read_records(runs_root: Path) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    for path in sorted(runs_root.glob("**/run-record.json")):
+        try:
+            records.append(normalize_record(path))
+        except (OSError, json.JSONDecodeError, UnicodeDecodeError) as error:
+            print(f"warning: skipped {path}: {error}", file=sys.stderr)
+    return records
+
+
+def summary(records: list[dict[str, Any]]) -> dict[str, Any]:
+    scored = [record for record in records if isinstance(record.get("routing_result"), dict) and "choice" in record["routing_result"]]
+    unavailable = [record for record in records if object_at(record.get("routing_result")).get("status") == "unavailable"]
+    return {
+        "records": records,
+        "counts": {
+            "total": len(records),
+            "routing_scored": len(scored),
+            "routing_unavailable": len(unavailable),
+            "routing_not_recorded": len(records) - len(scored) - len(unavailable),
+        },
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--runs-root", type=Path, default=Path.home() / ".pies" / "runs")
+    parser.add_argument("--json", action="store_true", help="emit the normalized records and counts as JSON")
+    args = parser.parse_args()
+    result = summary(read_records(args.runs_root))
+    if args.json:
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+    print("PIES routing records")
+    for key, value in result["counts"].items():
+        print(f"{key}: {value}")
+    for record in result["records"]:
+        routing = object_at(record.get("routing_result"))
+        print(
+            f"{record['repository']}/{record['node_id']}: kind={record['kind']}; "
+            f"choice={routing.get('choice')}; confidence={routing.get('confidence')}"
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

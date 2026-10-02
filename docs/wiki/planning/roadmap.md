@@ -3,7 +3,7 @@ title: PIES roadmap
 type: planning
 tags: [pies, roadmap, planning]
 created: 2026-09-23
-updated: 2026-09-24
+updated: 2026-09-25
 sources: [../raw/adr/README.md]
 ---
 
@@ -42,15 +42,16 @@ Existing validation debt. Most open work is evidence, not features.
 
 ## Possible — System-1 (JEV) opportunities
 
-All items below are advisory. They record a bounded classification, score, or choice with evidence references; the lead, evaluator, deterministic checks, and human gates retain authority.
+All items below are advisory today. They record a bounded classification, score, or choice with evidence references; the lead, evaluator, deterministic checks, and human gates retain authority unless a calibrated item explicitly earns narrower terminal authority.
 
 1. **Task-kind routing.** Registry shipped (`skills/pies/assets/kind-profiles.json`, ADR-020): seven kinds, shadow-mode default, report-only `research`/`codebase-analysis` standalone profiles, DAG rejection of report nodes. Next: accumulate ≥25 shadow-mode `routing_input` pairs, then calibrate per-kind precision above `0.85` before enabling authoritative auto-routing. The proposed [[kind-profile-matrix|kind-profile matrix]] records the design rationale.
-2. **Escalation triage.** Flag possible multi-domain, public-surface, or security implications at intake. It may raise an escalation; it must never clear one.
-3. **Historical-run tagging and clustering.** Tag lead-owned run records, terminal outcomes, and wave briefs; identify recurring failure patterns for the self-improvement meta agent. Graphify remains the future corpus-query layer.
-4. **Scout source ranking.** Rank likely-relevant project knowledge pages, learnings, verification guides, and code areas. Scout must still read the selected sources.
-5. **DAG split and dependency critique.** Flag likely independently mergeable outcomes, bad splits, or missing semantic dependencies during decomposition. The lead/human still approves the DAG.
-6. **Verification-route suggestions.** Suggest likely applicable verification features or surfaces when path matching and task intent disagree. It cannot waive a deterministic check or real-surface proof.
-7. **Evaluator-finding triage.** Categorize and rank possible P0 defects, scope creep, and missing criterion evidence. The lead and escalation evaluator alone decide acceptance.
+2. **Evaluation shadow.** After worker/simplifier evidence is assembled, JEV evaluates a normalized packet using the **lead-selected kind** while routing remains shadow-only. It records per-criterion assessment, confidence, risk flags, and candidate disposition; lead/cold-evaluator disposition remains terminal. Compare results per kind, especially false passes and escalation misses. It can earn bounded JEV terminal authority only for calibrated, low-risk profiles; unknown, low-confidence, flagged, and deterministically escalated work always routes to the lead/cold evaluator.
+3. **Escalation triage.** Flag possible multi-domain, public-surface, or security implications at intake. It may raise an escalation; it must never clear one.
+4. **Historical-run tagging and clustering.** Tag lead-owned run records, terminal outcomes, and wave briefs; identify recurring failure patterns for the self-improvement meta agent. Graphify remains the future corpus-query layer.
+5. **Scout source ranking.** Rank likely-relevant project knowledge pages, learnings, verification guides, and code areas. Scout must still read the selected sources.
+6. **DAG split and dependency critique.** Flag likely independently mergeable outcomes, bad splits, or missing semantic dependencies during decomposition. The lead/human still approves the DAG.
+7. **Verification-route suggestions.** Suggest likely applicable verification features or surfaces when path matching and task intent disagree. It cannot waive a deterministic check or real-surface proof.
+8. **Evaluator-finding triage.** Categorize and rank possible P0 defects, scope creep, and missing criterion evidence. The lead and escalation evaluator alone decide acceptance.
 
 ## Deferred
 
