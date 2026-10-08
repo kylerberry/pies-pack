@@ -22,6 +22,13 @@ test('normalizeLaunchInput rejects missing approval, empty task lists, and overs
   );
 });
 
+test('fanout rejects shared-repository plan delivery tasks', () => {
+  assert.throws(
+    () => normalizeLaunchInput({ ...base, tasks: ['Run a shared-repository plan'] }, { model: 'm' }),
+    /cannot create, run, schedule, or integrate delivery plans/,
+  );
+});
+
 test('defaults match the wizard contract and direct forces operator authority', () => {
   const defaults = normalizeLaunchInput(base, { model: 'zai/glm-5.3', thinkingLevel: 'low' });
   assert.equal(defaults.protocol, 'pies');

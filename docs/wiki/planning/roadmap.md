@@ -30,7 +30,7 @@ Existing validation debt. Most open work is evidence, not features.
 **Open questions.**
 
 1. **Authority.** Does the classifier decide, or advise with lead confirmation? Recommended: advisory — record kind and confidence in the node packet; the lead confirms or overrides.
-2. **Placement.** Inside `/pies` normalization, or an upstream router before decomposition? If upstream, does it also classify each DAG node during `pies-decompose-to-dag`?
+2. **Placement.** Inside `/pies` normalization, or an upstream router before decomposition? If upstream, does it also classify each private plan node during `pies-create-plan`?
 3. **Fallback.** Low-confidence or mixed-kind tasks: run the full PIES loop, or ask the human?
 4. **Kind set.** Which kinds earn modified operations, and what does each skip or add? A tests kind may reduce to criterion-first only; a documentation kind may skip real-surface proof (ADR-008 allows additive map entries, not removals — check whether that rule extends to kind-based skips).
 5. **Model.** Which system-1 model — scout's `glm-5.3-flash` or another — and what measured accuracy on a labeled task sample before adoption?
@@ -39,6 +39,14 @@ Existing validation debt. Most open work is evidence, not features.
 8. **ADR path.** This extends ADR-004 and ADR-005; record a new ADR once decided.
 
 **Outcome needed:** decisions on the questions above, then an ADR and implementation plan.
+
+## Plan-first delivery interface
+
+ADR-021 replaces DAG-named public surfaces. `/pies-create-plan` saves an immutable spec-backed plan; `/pies-run-plan` explicitly starts it; `/pies` remains for a known scoped change. The private graph, five-field nodes, Git-derived status, and rolling admission stay internal. Planning attacks preserve progressive capability proof and record persistent warnings. See [[plan-first-interface|implementation plan]].
+
+## Parallel fanout boundary
+
+Fanout is parallel assistance: session-derived independent tasks, visible workers, and manager-level reports. It must not create, run, schedule, or integrate shared-repository delivery plans. `/pies-run-plan` alone owns plan packets, admission, serial verified merges, and durable wave evidence.
 
 ## Possible — System-1 (JEV) opportunities
 

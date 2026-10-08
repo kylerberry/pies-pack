@@ -8,7 +8,7 @@
  *   if ask_user is unavailable.
  *
  * Task-kind routing policy stays canonical in the pies-skills repository; this
- * extension launches work, it does not route it.
+ * extension launches parallel assistance, not shared-repository plan delivery or integration.
  */
 
 import { execFile } from 'node:child_process';
@@ -322,10 +322,10 @@ export default function piesFanout(pi: ExtensionAPI) {
     name: 'pies_fanout_launch',
     label: 'Launch PIES fanout workers',
     description:
-      'Launch explicitly approved independent tasks as visible Herdr workers. Prerequisites: Herdr CLI on PATH (or $HERDR_BIN) and an interactive session with the ask_user tool; both are checked or documented with actionable failures.',
+      'Launch explicitly approved independent tasks as visible Herdr workers. Parallel assistance only: never create, run, schedule, or integrate shared-repository delivery plans. Prerequisites: Herdr CLI on PATH (or $HERDR_BIN) and an interactive session with the ask_user tool; both are checked or documented with actionable failures.',
     promptSnippet: 'Launch user-approved PIES fanout tasks as visible Herdr workers',
     promptGuidelines: [
-      'Use pies_fanout_launch only after the user has approved the exact tasks and launch configuration through the /pies-fanout wizard (ask_user).',
+      'Use pies_fanout_launch only after the user has approved exact independent tasks and configuration through /pies-fanout; never use it for plan delivery.',
     ],
     parameters: Type.Object({
       tasks: Type.Array(Type.String({ minLength: 1 }), {

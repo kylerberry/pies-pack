@@ -5,7 +5,7 @@ argument-hint: '[tasks, references, or instruction]'
 
 Act as the planning layer for `pies_fanout_launch`. Read the active session before deciding anything; it contains the task context.
 
-Prerequisites: Herdr CLI on PATH (or `$HERDR_BIN`) — `pies_fanout_launch` preflights it and fails with install instructions — and this must be an interactive session with the `ask_user` tool available. If `ask_user` is unavailable or disabled, stop and tell the operator that /pies-fanout requires an interactive session; do not launch unconfigured workers. Task-kind routing stays canonical in the pies-skills package; do not re-implement it here.
+Prerequisites: Herdr CLI on PATH (or `$HERDR_BIN`) — `pies_fanout_launch` preflights it and fails with install instructions — and this must be an interactive session with the `ask_user` tool available. If `ask_user` is unavailable or disabled, stop and tell the operator that /pies-fanout requires an interactive session; do not launch unconfigured workers. Fanout is parallel assistance only: never create, run, schedule, or integrate a shared-repository delivery plan; direct that work to `/pies-create-plan` then `/pies-run-plan`. Task-kind routing stays canonical in the pies-skills package; do not re-implement it here.
 
 Invocation argument: `${@:-none}`
 

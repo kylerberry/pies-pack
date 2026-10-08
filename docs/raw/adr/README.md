@@ -1,6 +1,6 @@
 # PIES architecture decisions
 
-Decisions for the reworked PIES workflow. The canonical skill is `pies` (`/pies`). Every skill and custom agent in the family is prefixed `pies-`: `pies-decompose-to-dag`, `pies-execute-dag`, `pies-simplifier`, `pies-evaluator`. Recorded 2026-09-20. Several draw on Lauren Tan's pstack (cursor/plugins/pstack); where a decision departs from pstack, the ADR says why.
+Decisions for the reworked PIES workflow. The canonical skill is `pies` (`/pies`). Every skill and custom agent in the family is prefixed `pies-`: `pies-create-plan`, `pies-run-plan`, `pies-simplifier`, `pies-evaluator`. Recorded 2026-09-20. Several draw on Lauren Tan's pstack (cursor/plugins/pstack); where a decision departs from pstack, the ADR says why.
 
 | ADR | Title | Status |
 |---|---|---|
@@ -24,6 +24,7 @@ Decisions for the reworked PIES workflow. The canonical skill is `pies` (`/pies`
 | [018](018-shared-afk-flag.md) | One `--afk` flag, human approval by default | Accepted |
 | [019](019-dag-admission-policy.md) | DAG structure is durable; admission policy is replaceable | Accepted |
 | [020](020-task-kind-routing.md) | Task-kind routing | Accepted |
+| [021](021-plan-first-public-interface.md) | Plan-first public interface and lifecycle | Accepted |
 
 ## Open questions
 
@@ -36,9 +37,9 @@ Decisions for the reworked PIES workflow. The canonical skill is `pies` (`/pies`
 
 ## Shared vocabulary
 
-- **Supervisor.** The long-running PM session running `pies-execute-dag`. One per DAG. Dispatches node leads, merges, writes trailers, consolidates learnings, writes the wave brief. Never plans or reviews node code.
+- **Supervisor.** The long-running PM session running `pies-run-plan`. One per plan. Dispatches node leads, merges, writes trailers, consolidates learnings, writes the wave brief. Never plans or reviews node code.
 - **Lead.** The session running `/pies` for one node. One per node. Plans, delegates, reviews, evaluates, and returns the output contract. Never writes production code. In DAG mode it never merges; standalone, it also publishes.
 - **Depth.** Supervisor at 0, leads at 1, scout, worker, simplifier, and second opinion at 2. Standalone runs start at the lead.
 - **Worker.** The role that writes code in the node worktree.
-- **Node.** One unit of work: a DAG node, or a standalone task normalized to the node shape.
+- **Node.** One unit of work: a private plan node, or a standalone task normalized to the node shape.
 - **Escalation triggers.** Work spanning two or more domains, security implications, or public surfaces and APIs. Carried over from the original pies Plan stage.

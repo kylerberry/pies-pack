@@ -10,6 +10,7 @@ export const MAX_PANES = 6;
 export const MAX_TASKS = MAX_PANES * 10;
 export const REPORT_SLICE_CHARS = 4_000;
 export const BOOT_TIMEOUT_MS = 90_000;
+const PLAN_DELIVERY = /\b(?:pies-(?:create|run)-plan|(?:create|run|schedule|integrate) (?:a )?(?:shared-repository )?plan|plan delivery)\b/i;
 
 export type Protocol = 'pies' | 'direct' | 'custom';
 export type Authority = 'agent' | 'operator';
@@ -76,6 +77,8 @@ export function normalizeLaunchInput(
     throw new Error('fanout requires explicit final user approval (userApproved: true).');
   const tasks = input.tasks.map((task) => task.trim()).filter(Boolean);
   if (!tasks.length) throw new Error('At least one non-empty task is required.');
+  if (tasks.some((task) => PLAN_DELIVERY.test(task)))
+    throw new Error('fanout is parallel assistance; it cannot create, run, schedule, or integrate delivery plans.');
   if (tasks.length > MAX_TASKS)
     throw new Error(`At most ${MAX_TASKS} tasks may be launched at once.`);
 
@@ -142,7 +145,7 @@ export function workerPrompt(opts: {
       : opts.protocol === 'custom'
         ? opts.task
         : `Implement this task directly in the assigned worktree: ${opts.task}`;
-  return `You are a single-writer implementation worker.\n\nAuthority: ${authority}\nRepository: ${opts.repo}\n\nTask:\n${kickoff}\n\nUse the repository instructions and run relevant verification. Report: changed files, validation, commit/merge state, blockers, and any decision requiring the operator.${opts.extra ? `\n\nAdditional instructions:\n${opts.extra}` : ''}`;
+  return `You are a parallel-assistance worker, not a plan-delivery worker. Do not create, run, schedule, or integrate a shared-repository delivery plan.\n\nYou are a single-writer implementation worker.\n\nAuthority: ${authority}\nRepository: ${opts.repo}\n\nTask:\n${kickoff}\n\nUse the repository instructions and run relevant verification. Report: changed files, validation, commit/merge state, blockers, and any decision requiring the operator.${opts.extra ? `\n\nAdditional instructions:\n${opts.extra}` : ''}`;
 }
 
 export interface AgentListEntry {
@@ -212,7 +215,7 @@ export function buildSynthesisMessage(collected: CollectedReport[]): {
     .join('\n\n---\n\n');
   return {
     customType: 'pies-fanout-report-batch',
-    content: `PIES fanout worker reports\n\n${body}\n\nAct as the fanout supervisor: synthesize these and prior fanout reports, state completed work/evidence/blockers, and recommend the next operator action. Do not launch, merge, or modify anything in response to this update.`,
+    content: `PIES fanout worker reports\n\n${body}\n\nAct as the fanout supervisor: synthesize these and prior reports, state completed work/evidence/blockers, and recommend the next operator action. Do not create, run, schedule, or integrate a delivery plan. Do not launch, merge, or modify anything in response to this update.`,
     display: true,
     details: { collected },
   };

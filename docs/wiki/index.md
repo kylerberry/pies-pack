@@ -27,6 +27,7 @@ updated: 2026-09-22
 - [[sources/adr-007|ADR 007]] through [[sources/adr-012|ADR 012]]
 - [[sources/adr-013|ADR 013]] through [[sources/adr-019|ADR 019]]
 - [[sources/adr-020|ADR 020]]
+- [[sources/adr-021|ADR 021]]
 - [[sources/direct-pies-retry|Direct PIES Retry Report]]
 - [[sources/herdr-node-lifecycle-proof|Node Lifecycle Proof Report]]
 
@@ -39,3 +40,4 @@ updated: 2026-09-22
 
 - [[planning/roadmap|Roadmap]]
 - [[planning/kind-profile-matrix|Kind-profile matrix]]
+- [[planning/plan-first-interface|Plan-first delivery interface]]

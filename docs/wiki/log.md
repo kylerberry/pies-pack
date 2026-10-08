@@ -23,5 +23,7 @@ updated: 2026-09-22
 - [[log/entries/2026-09-24-configured-knowledge-sink|2026-09-24 — Configured knowledge sink with user-level fallback]]
 - [[log/entries/2026-09-24-task-kind-routing-registry|2026-09-24 — Shipped task-kind routing registry]]
 - [[log/entries/2026-09-25-jev-evaluation-shadow|2026-09-25 — Added JEV evaluation shadow]]
+- [[log/entries/2026-09-25-fanout-dag-boundary|2026-09-25 — Added fanout versus DAG boundary discussion]]
+- [[log/entries/2026-09-25-plan-first-interface|2026-09-25 — Accepted plan-first PIES interface]]
 
 See [[index|Documentation Index]].

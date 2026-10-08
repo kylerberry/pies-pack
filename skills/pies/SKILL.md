@@ -1,6 +1,6 @@
 ---
 name: pies
-description: Execute one code-change node through grounding, planning, delegated implementation, deletion-only simplification, independent evaluation, proof, and learning capture. Use for a standalone task or a DAG node. Accepts --afk; publication otherwise requires human approval.
+description: Execute one code-change node through grounding, planning, delegated implementation, deletion-only simplification, independent evaluation, proof, and learning capture. Use for a standalone task or a private plan node. Accepts --afk; publication otherwise requires human approval.
 ---
 
 # PIES
@@ -13,13 +13,13 @@ Accept `pies [--afk] <task-or-node-packet>`. Reject unknown flags.
 
 Normalize to exactly `id`, `intent`, `change_spec`, `acceptance_criteria`, plus run metadata `provenance`, `kind`, and `worktree`:
 
-- DAG packet: preserve all four content fields byte-for-byte, set `provenance: dag`, and use its supplied worktree.
-- Standalone task: author the four fields, set `provenance: authored`, and create `$HOME/.worktrees/<repo-basename>/worktree-<id>` from the current branch. Before planning, apply the two-PR, reviewer-budget, and intent-smell tests from `pies-decompose-to-dag`. If two independently valuable mergeable outcomes exist, stop and recommend that skill.
+- Plan packet: preserve all four content fields byte-for-byte, set `provenance: plan`, and use its supplied worktree.
+- Standalone task: author the four fields, set `provenance: authored`, and create `$HOME/.worktrees/<repo-basename>/worktree-<id>` from the current branch. Before planning, apply the two-PR, reviewer-budget, and intent-smell tests from `pies-create-plan`. If two independently valuable mergeable outcomes exist, stop and recommend that skill.
 - Routing runs in every mode. Invoke the router (TypeSafe/JEV `typesafe_choice`) with only `routing_input` (`intent` + `change_spec`). In `shadow` mode (default), record its choice, confidence, flags, and rationale in `routing_result` with disposition `shadow`; the lead's own kind selection still controls procedure. In `authoritative` mode, apply the router's profile automatically only when the kind is in `auto_route_kinds`, confidence exceeds the registry threshold, and no mixed-work or escalation flag is raised; otherwise the lead resolves the kind and records the disposition. If the router is unavailable in either mode, record `routing_result: unavailable` and proceed with lead selection. Kinds follow [kind-profiles.json](assets/kind-profiles.json): `feature`, `bug`, `refactor`, `test`, `documentation`, `research`, `codebase-analysis`; feature/bug/refactor/test follow their registry proof contracts, and test work is behavioral or explicit-coverage mode.
 
-Do all work in the dedicated worktree. In DAG mode, never merge. In standalone mode, never publish before the Publication gate.
+Do all work in the dedicated worktree. In plan mode, never merge. In standalone mode, never publish before the Publication gate.
 
-**Report-only kinds** (`research`, `codebase-analysis`) skip the worktree, worker-as-writer, merge, and Publication gate: Scout investigates (an optional read-only worker may gather evidence), the lead evaluates the report against the registry proof contract, and the run terminates by returning the report. A report run is successful only when its contract is complete; agent idleness is not success. These kinds are standalone-only: a DAG packet or `pies-execute-dag` admission carrying one is rejected with a recommendation to run it standalone.
+**Report-only kinds** (`research`, `codebase-analysis`) skip the worktree, worker-as-writer, merge, and Publication gate: Scout investigates (an optional read-only worker may gather evidence), the lead evaluates the report against the registry proof contract, and the run terminates by returning the report. A report run is successful only when its contract is complete; agent idleness is not success. These kinds are standalone-only: a plan packet or `pies-run-plan` admission carrying one is rejected with a recommendation to run it standalone.
 
 ## Artifact location
 
@@ -29,7 +29,7 @@ Do not write PIES artifacts under the repository or worktree. At the start of ev
 $HOME/.pies/<category>/<repo-basename>/
 ```
 
-Derive `<repo-basename>` from the repository's main checkout — the basename of the parent of `git rev-parse --git-common-dir` — never from the current worktree's directory name, so every worktree of one repository shares one root. Call `$HOME/.pies` `PIES_ARTIFACT_ROOT`. Create `runs/<repo-basename>/` beneath it as needed (`waves/<repo-basename>/` in DAG mode). If two distinct repositories share a basename, disambiguate the directory explicitly and record the choice in both repositories' AGENTS.md. Use absolute paths beneath this root for the normalized node, plan, child reports, and verification evidence. Never rely on a worktree-local `.pies/` directory, even when it is ignored.
+Derive `<repo-basename>` from the repository's main checkout — the basename of the parent of `git rev-parse --git-common-dir` — never from the current worktree's directory name, so every worktree of one repository shares one root. Call `$HOME/.pies` `PIES_ARTIFACT_ROOT`. Create `runs/<repo-basename>/` beneath it as needed (`waves/<repo-basename>/` in plan mode). If two distinct repositories share a basename, disambiguate the directory explicitly and record the choice in both repositories' AGENTS.md. Use absolute paths beneath this root for the normalized node, plan, child reports, and verification evidence. Never rely on a worktree-local `.pies/` directory, even when it is ignored.
 
 ## Project knowledge
 
@@ -69,7 +69,7 @@ During planning:
 - For changes crossing a function boundary, write a types-and-signatures sketch.
 - Stop for human approval when work spans two or more domains, has security implications, or changes a public API/surface. `--afk` does not bypass this gate.
 
-Write the normalized node and plan to `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/` and pass their absolute paths. The plan references, not restates, DAG criteria.
+Write the normalized node and plan to `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/` and pass their absolute paths. The plan references, not restates, private graph criteria.
 
 ### 2. Protect the bar
 
@@ -106,7 +106,7 @@ A pass requires the lead's acceptance and, when triggered, second-opinion accept
 
 Write durable learnings to the resolved knowledge sink. Write only reusable repository knowledge that would change how a later engineer plans, implements, or verifies work: a non-obvious invariant or architectural constraint; a recurring footgun or failure mode; an undocumented verification, setup, or operational requirement; misleading convention or dependency behavior; or a decision needed to work safely in the area. Include evidence and affected paths. Exclude task summaries, changed-file lists, temporary failures, implementation narration, and facts obvious from code.
 
-The lead owns `run-record.json` in its packet-supplied run directory (a DAG attempt directory) or, for a standalone run, `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/`. Write it after Record, for every terminal lead outcome. It is a compact, normalized index record for later analysis—not a transcript. Include only observed values: record version; repository identity and base revision; node ID and provenance; immutable `routing_input` containing exactly the pre-routing `intent` and `change_spec`; final kind; optional `routing_result` when a router ran (choice, confidence, flags, rationale, and lead disposition); resolved knowledge sources and sink; criteria disposition; phase deadline/inactivity events; referenced plan, grounding, simplifier, verification, evaluator, and node-contract paths; acceptance and `Unproved` status; durable-learning paths; and the worktree/commit when known. Link to raw artifacts by absolute path; do not copy raw output, transcripts, secrets, or estimated model cost. Calibration passes only `routing_input` to a router, never later record fields. Historical readers must normalize the final kind from top-level `kind`, falling back to legacy `node.kind`; never mutate raw run records to backfill it. The supervisor separately owns DAG `terminal.json` and merge facts.
+The lead owns `run-record.json` in its packet-supplied run directory (a DAG attempt directory) or, for a standalone run, `<PIES_ARTIFACT_ROOT>/runs/<repo-basename>/<id>/`. Write it after Record, for every terminal lead outcome. It is a compact, normalized index record for later analysis—not a transcript. Include only observed values: record version; repository identity and base revision; node ID and provenance; immutable `routing_input` containing exactly the pre-routing `intent` and `change_spec`; final kind; optional `routing_result` when a router ran (choice, confidence, flags, rationale, and lead disposition); resolved knowledge sources and sink; criteria disposition; phase deadline/inactivity events; referenced plan, grounding, simplifier, verification, evaluator, and node-contract paths; acceptance and `Unproved` status; durable-learning paths; and the worktree/commit when known. Link to raw artifacts by absolute path; do not copy raw output, transcripts, secrets, or estimated model cost. Calibration passes only `routing_input` to a router, never later record fields. Historical readers must normalize the final kind from top-level `kind`, falling back to legacy `node.kind`; never mutate raw run records to backfill it. The supervisor separately owns plan-node `terminal.json` and merge facts.
 
 Return this contract, even on failure:
 
@@ -136,4 +136,4 @@ Success requires `Unproved: None`, lead acceptance, and second-opinion acceptanc
 
 ## Publication
 
-Without `--afk`, stop after Record and ask for approval. With `--afk`, lead acceptance plus any required second-opinion acceptance authorizes standalone merge only after final verification. DAG leads always return control to the supervisor; only it may merge. Never delete a failed or unapproved worktree.
+Without `--afk`, stop after Record and ask for approval. With `--afk`, lead acceptance plus any required second-opinion acceptance authorizes standalone merge only after final verification. Plan-node leads always return control to the supervisor; only it may merge. Never delete a failed or unapproved worktree.
