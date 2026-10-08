@@ -7,8 +7,8 @@ PIES helps you ship code changes with agents without treating “the agent said 
 - **Gets a change from request to evidence.** One lead understands the work, delegates implementation, checks the result, and leaves a concise contract explaining what changed and how it was proved.
 - **Uses the right shape of work.** Bugs start with a reproduction; features prove a user outcome; refactors preserve named behavior; test work proves either protection or the requested coverage; research and codebase analysis return useful reports without pretending they are mergeable code changes.
 - **Proves, rather than asserts.** PIES runs relevant checks and real user surfaces where they apply. It records verification, missing proof, and simplifier deletions—not just a success claim.
-- **Makes larger work manageable.** A DAG captures real dependencies, then admits newly unblocked work as soon as it is safe to start. You can deliberately choose a barrier when coordination matters.
-- **Lets you delegate visibly.** `/pies-fanout` asks for approval, launches independent workers in Herdr, monitors them, and brings their terminal reports back for one manager-level summary.
+- **Makes larger work manageable.** Immutable plans capture real dependencies internally, then admit newly unblocked work as soon as it is safe to start. You can deliberately choose a barrier when coordination matters.
+- **Lets you delegate visibly.** `/pies-fanout` is parallel assistance: it launches independent workers in Herdr and returns reports. It never creates, runs, schedules, or integrates shared-repository delivery plans.
 - **Remembers useful context.** Run records, wave briefs, project knowledge, and durable learnings make later work easier to ground and eventually give the self-improvement loop something trustworthy to learn from.
 
 ## How the agents work together
@@ -37,12 +37,11 @@ These are runtime Pi extensions used alongside PIES, not code bundled by this pa
 ## Contents
 
 - `skills/pies`: one change from grounding through proof
-- `skills/pies-decompose-to-dag`: turn a larger request into independently verifiable outcomes
-- `skills/pies-execute-dag`: run dependency-aware work with verified integration
+- `skills/pies-create-plan`: turn a complete specification into an immutable delivery plan
+- `skills/pies-run-plan`: deliver a plan with dependency-aware verified integration
 - `skills/pies-create-verification-skill`: create a project-local way to drive and prove a real app surface
 - `agents/`: lead, simplifier, and independent-evaluator bindings
 - `extensions/pies-fanout.ts` + `prompts/pies-fanout.md`: visible, approval-gated worker fanout
-- `scripts/dag-next`: find work ready to start from Git history
 - `scripts/pies-run-summary`: summarize historical routing records across run-record versions
 
 ## Use
@@ -52,8 +51,8 @@ Open this repository as a trusted Pi project to use its skills.
 ```text
 /skill:pies <task>
 /skill:pies --afk <task>
-/skill:pies-decompose-to-dag <spec>
-/skill:pies-execute-dag [--afk] [--barriered] [dag.json]
+/pies-create-plan <complete spec | references>
+/pies-run-plan [--afk] [--barriered] <plan-id>
 /skill:pies-create-verification-skill
 /pies-fanout [tasks, references, or instruction]
 /pies-fanout-status

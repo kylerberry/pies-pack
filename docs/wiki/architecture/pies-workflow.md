@@ -25,15 +25,15 @@ PIES is a lead-owned code-change workflow. The initiating session is the lead fo
 
 Verification uses deterministic checks and the applicable real surface. [[../sources/adr-008|ADR 008]] defines the verify map; [[../sources/adr-012|ADR 012]] defines the contract.
 
-## DAG lifecycle
+## Plan lifecycle
 
-The supervisor derives readiness from first-parent Git trailers, creates isolated worktrees, and merges passing nodes serially with `--no-ff`. Default execution is a rolling ready frontier: a non-passing node freezes only transitive dependents, while a new merge can admit newly ready work up to the caller-selected runtime limit. `--barriered` restores a deliberate batch boundary; shared-exclusive surfaces always serialize. Execution hosting is selected by the invoking prompt, not by the DAG skill. [[../sources/adr-014|ADR 014]] covers Git-derived status; [[../sources/adr-019|ADR 019]] covers admission policy.
+`/pies-create-plan` saves an immutable spec-backed plan; `/pies-run-plan` resolves it against the current base. Its private graph derives readiness from first-parent Git trailers, creates isolated worktrees, and merges passing nodes serially with `--no-ff`. Default execution is a rolling ready frontier: a non-passing node freezes only transitive dependents, while a new merge can admit newly ready work up to the caller-selected runtime limit. `--barriered` restores a deliberate batch boundary; shared-exclusive surfaces always serialize. [[../sources/adr-021|ADR 021]] defines the public lifecycle; [[../sources/adr-014|ADR 014]] and [[../sources/adr-019|ADR 019]] preserve Git-derived status and admission.
 
 > ⚠️ Unverified: durable node-session execution and its artifact heartbeat protocol need a disposable-repository acceptance test. See [[../sources/herdr-node-lifecycle-proof|node lifecycle proof report]].
 
 ## Historical evidence
 
-Raw run artifacts live under `~/.pies` for audit and diagnosis. The lead writes a compact, normalized run record that preserves immutable pre-routing `intent` and `change_spec`; the DAG supervisor separately records terminal classification and merge facts. Future self-improvement work should query these curated records, terminal outcomes, and wave briefs rather than raw checkpoints or transcripts. Graphify is the proposed query layer; it is not yet integrated.
+Raw run artifacts live under `~/.pies` for audit and diagnosis. The lead writes a compact, normalized run record that preserves immutable pre-routing `intent` and `change_spec`; the plan supervisor separately records terminal classification and merge facts. Future self-improvement work should query these curated records, terminal outcomes, and wave briefs rather than raw checkpoints or transcripts. Graphify is the proposed query layer; it is not yet integrated.
 
 ## Comprehension and publication
 

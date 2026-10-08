@@ -16,6 +16,8 @@ test('pi manifest exports the fanout extension and prompt resources that exist',
   }
   await readFile(join(root, 'extensions/pies-fanout.ts'), 'utf8');
   await readFile(join(root, 'prompts/pies-fanout.md'), 'utf8');
+  await readFile(join(root, 'prompts/pies-create-plan.md'), 'utf8');
+  await readFile(join(root, 'prompts/pies-run-plan.md'), 'utf8');
 });
 
 test('extension registers only pies-prefixed tools and commands', async () => {
