@@ -15,6 +15,7 @@ test('pi manifest exports the fanout extension and prompt resources that exist',
     await assert.doesNotReject(stat(join(root, dir)));
   }
   await readFile(join(root, 'extensions/pies-fanout.ts'), 'utf8');
+  await readFile(join(root, 'extensions/pies-telemetry.ts'), 'utf8');
   await readFile(join(root, 'prompts/pies-fanout.md'), 'utf8');
   await readFile(join(root, 'prompts/pies-create-plan.md'), 'utf8');
   await readFile(join(root, 'prompts/pies-run-plan.md'), 'utf8');
@@ -43,6 +44,18 @@ test('extension registers only pies-prefixed tools and commands', async () => {
     'pies-fanout-stop',
   ]);
   assert.ok(typeof shutdownHandler === 'function');
+});
+
+test('telemetry extension exposes only explicit bind and finalize tools', async () => {
+  const { default: piesTelemetry } = await import(join(root, 'extensions/pies-telemetry.ts'));
+  const tools: Array<{ name: string }> = [];
+  const events: string[] = [];
+  piesTelemetry({
+    registerTool: (tool: { name: string }) => void tools.push(tool),
+    on: (event: string) => void events.push(event),
+  } as never);
+  assert.deepEqual(tools.map((tool) => tool.name).sort(), ['pies_telemetry_bind', 'pies_telemetry_finalize']);
+  assert.deepEqual(events.sort(), ['agent_settled', 'agent_start', 'message_end', 'message_start', 'tool_execution_end', 'tool_execution_start', 'ui_prompt_end', 'ui_prompt_start']);
 });
 
 test('legacy global fanout names are absent from the packaged resources', async () => {

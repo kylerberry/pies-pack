@@ -42,6 +42,7 @@ These are runtime Pi extensions used alongside PIES, not code bundled by this pa
 - `skills/pies-create-verification-skill`: create a project-local way to drive and prove a real app surface
 - `agents/`: lead, simplifier, and independent-evaluator bindings
 - `extensions/pies-fanout.ts` + `prompts/pies-fanout.md`: visible, approval-gated worker fanout
+- `extensions/pies-telemetry.ts`: explicit lead-only run telemetry
 - `scripts/pies-run-summary`: summarize historical routing records across run-record versions
 
 ## Use
@@ -66,7 +67,13 @@ To install the fanout extension and prompt as a local Pi package:
 pi install /path/to/pies-skills
 ```
 
-Skills remain project-discovered; the package manifest exports the fanout resources.
+Skills remain project-discovered; the package manifest exports the fanout and telemetry resources.
+
+## Lead telemetry
+
+At `/pies` start, the lead calls `pies_telemetry_bind` with the normalized run ID and `role: "lead"`. It writes append-only `telemetry.jsonl` only in that run's existing PIES artifact directory. Before writing the terminal run record, the same session calls `pies_telemetry_finalize` and records its returned lead-only rollup.
+
+The rollup's `active_ms` is **bound-lead active time**: bind → explicit finalize, less completed, explicitly observed Pi UI-prompt waits. It is not agent/session lifetime. The stream records finalized assistant usage and optional Pi-reported cost, plus lead tool/lifecycle timing and UI-prompt timing only—never prompt content, kind, title, or response. It does not collect child telemetry, tool arguments/results, phase or critical-path timing, provider-generation metrics, or invoice cost.
 
 ## Roadmap
 
