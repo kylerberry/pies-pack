@@ -1,6 +1,6 @@
 # PIES skills
 
-PIES helps you ship code changes with agents without treating “the agent said it worked” as proof.
+PIES helps you ship production-ready code with agents. Built on [Pi](https://github.com/earendil-works/pi)
 
 ## What it does
 
