@@ -7,6 +7,7 @@ import { Type } from 'typebox';
 import { LeadTelemetry, observedUsage, type SessionIdentity } from '../src/pies-telemetry/core.js';
 
 const exec = promisify(execFile);
+const TELEMETRY_CONTROL_TOOLS = new Set(['pies_telemetry_bind', 'pies_telemetry_finalize']);
 let telemetry: LeadTelemetry | undefined;
 
 function session(ctx: { sessionManager: { getSessionId(): string | undefined; getSessionFile(): string | undefined } }): SessionIdentity {
@@ -86,11 +87,11 @@ export default function piesTelemetry(pi: ExtensionAPI) {
   });
   pi.on('tool_execution_start', async (event, ctx) => {
     const bound = active(ctx);
-    if (bound) await bound.append({ v: 1, type: 'tool_start', at: Date.now(), tool_call_id: event.toolCallId, tool_name: event.toolName, nested: nested(event) });
+    if (bound && !TELEMETRY_CONTROL_TOOLS.has(event.toolName)) await bound.append({ v: 1, type: 'tool_start', at: Date.now(), tool_call_id: event.toolCallId, tool_name: event.toolName, nested: nested(event) });
   });
   pi.on('tool_execution_end', async (event, ctx) => {
     const bound = active(ctx);
-    if (bound) await bound.append({ v: 1, type: 'tool_end', at: Date.now(), tool_call_id: event.toolCallId, tool_name: event.toolName, nested: nested(event), error: event.isError });
+    if (bound && !TELEMETRY_CONTROL_TOOLS.has(event.toolName)) await bound.append({ v: 1, type: 'tool_end', at: Date.now(), tool_call_id: event.toolCallId, tool_name: event.toolName, nested: nested(event), error: event.isError });
   });
   pi.on('agent_start', async (_event, ctx) => {
     const bound = active(ctx);

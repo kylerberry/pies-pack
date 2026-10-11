@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, rm, stat } from 'node:fs/promises';
+import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -56,6 +57,43 @@ test('telemetry extension exposes only explicit bind and finalize tools', async 
   } as never);
   assert.deepEqual(tools.map((tool) => tool.name).sort(), ['pies_telemetry_bind', 'pies_telemetry_finalize']);
   assert.deepEqual(events.sort(), ['agent_settled', 'agent_start', 'message_end', 'message_start', 'tool_execution_end', 'tool_execution_start', 'ui_prompt_end', 'ui_prompt_start']);
+});
+
+test('telemetry control tool bind/end and finalize/start ordering does not poison ordinary tool timing', async () => {
+  const { default: piesTelemetry } = await import(join(root, 'extensions/pies-telemetry.ts'));
+  const tools = new Map<string, { execute: (...args: any[]) => Promise<{ details: { tool_ms: number | null } }> }>();
+  const handlers = new Map<string, (...args: any[]) => Promise<void>>();
+  const runId = `telemetry-control-order-${process.pid}-${Date.now()}`;
+  const artifactDir = join(homedir(), '.pies', 'runs', 'pies-skills', runId);
+  const ctx = {
+    cwd: root,
+    sessionManager: { getSessionId: () => 'telemetry-order-session', getSessionFile: () => '/private/telemetry-order.jsonl' },
+  };
+  piesTelemetry({
+    registerTool: (tool: { name: string; execute: (...args: any[]) => Promise<{ details: { tool_ms: number | null } }> }) => tools.set(tool.name, tool),
+    on: (event: string, handler: (...args: any[]) => Promise<void>) => handlers.set(event, handler),
+  } as never);
+
+  try {
+    // Pi emits bind start before binding and bind end after it.
+    await handlers.get('tool_execution_start')!({ toolCallId: 'bind', toolName: 'pies_telemetry_bind' }, ctx);
+    await tools.get('pies_telemetry_bind')!.execute('bind', { run_id: runId, role: 'lead' }, undefined, undefined, ctx);
+    await handlers.get('tool_execution_end')!({ toolCallId: 'bind', toolName: 'pies_telemetry_bind', isError: false }, ctx);
+    await handlers.get('tool_execution_start')!({ toolCallId: 'ordinary', toolName: 'bash' }, ctx);
+    await handlers.get('tool_execution_end')!({ toolCallId: 'ordinary', toolName: 'bash', isError: false }, ctx);
+    // Finalize starts before it writes finalized; its end arrives afterward.
+    await handlers.get('tool_execution_start')!({ toolCallId: 'finalize', toolName: 'pies_telemetry_finalize' }, ctx);
+    const finalized = await tools.get('pies_telemetry_finalize')!.execute('finalize', {}, undefined, undefined, ctx);
+    await handlers.get('tool_execution_end')!({ toolCallId: 'finalize', toolName: 'pies_telemetry_finalize', isError: false }, ctx);
+
+    assert.equal(typeof finalized.details.tool_ms, 'number');
+    const telemetry = await readFile(join(artifactDir, 'telemetry.jsonl'), 'utf8');
+    assert.ok(telemetry.includes('"tool_name":"bash"'));
+    assert.ok(!telemetry.includes('pies_telemetry_bind'));
+    assert.ok(!telemetry.includes('pies_telemetry_finalize'));
+  } finally {
+    await rm(artifactDir, { recursive: true, force: true });
+  }
 });
 
 test('legacy global fanout names are absent from the packaged resources', async () => {
